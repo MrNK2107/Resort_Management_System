@@ -1,0 +1,68 @@
+/*
+TODO: RoleController.java
+Purpose:
+ - Manage roles & permissions; UI for role creation/permission assignment.
+Endpoints:
+ - POST /api/v1/roles
+ - GET /api/v1/roles
+ - PUT /api/v1/roles/{id}
+Notes:
+ - Permission logic should be a JSON/structure validated by an admin UI.
+File: hr/controller/RoleController.java
+*/
+package com.resortmanagement.system.hr.controller;
+
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.resortmanagement.system.hr.entity.Role;
+import com.resortmanagement.system.hr.service.RoleService;
+
+@RestController
+@RequestMapping("/api/hr/roles")
+public class RoleController {
+
+    private final RoleService roleService;
+
+    public RoleController(RoleService roleService) {
+        this.roleService = roleService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Role>> getAll() {
+        // TODO: add pagination and filtering params
+        return ResponseEntity.ok(this.roleService.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Role> getById(@PathVariable Long id) {
+        return this.roleService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<Role> create(@RequestBody Role entity) {
+        // TODO: add validation
+        return ResponseEntity.ok(this.roleService.save(entity));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Role> update(@PathVariable Long id, @RequestBody Role entity) {
+        // TODO: implement update logic
+        return ResponseEntity.ok(this.roleService.save(entity));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        this.roleService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+}
