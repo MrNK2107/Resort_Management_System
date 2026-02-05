@@ -3,7 +3,7 @@
 -- Owned by lead / architect
 
 CREATE TABLE guest (
-    guest_id UUID PRIMARY KEY,
+    guest_id VARCHAR(36) PRIMARY KEY,
 
     first_name VARCHAR(100) NOT NULL,
     last_name  VARCHAR(100) NOT NULL,

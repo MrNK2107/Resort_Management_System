@@ -109,6 +109,11 @@ resort-management-system/
    spring.datasource.password=your_password
    spring.jpa.hibernate.ddl-auto=validate
    spring.jpa.show-sql=false
+
+   spring.flyway.enabled=true
+   spring.flyway.locations=classpath:db/migration,classpath:db/testdata
+   spring.flyway.baseline-on-migrate=true
+   spring.flyway.clean-disabled=true
    ```
 
 3. **Build the project**
