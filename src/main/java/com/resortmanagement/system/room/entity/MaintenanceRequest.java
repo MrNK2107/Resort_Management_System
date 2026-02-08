@@ -17,6 +17,51 @@ File: room/entity/MaintenanceRequest.java
 */
 package com.resortmanagement.system.room.entity;
 
-public class MaintenanceRequest {
-    // TODO: fields, constructors, getters, setters
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import com.resortmanagement.system.common.audit.AuditableSoftDeletable;
+import com.resortmanagement.system.room.enums.MaintenanceSeverity;
+import com.resortmanagement.system.room.enums.MaintenanceStatus;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "maintenance_requests")
+@Getter
+@Setter
+public class MaintenanceRequest extends AuditableSoftDeletable {
+
+    @Id
+    @GeneratedValue
+    private UUID id;
+
+    @Column(name = "room_block_id")
+    private UUID roomBlockId;
+
+    @Column(name = "room_or_facility_id", nullable = false)
+    private UUID roomOrFacilityId;
+
+    private String description;
+
+    @Enumerated(EnumType.STRING)
+    private MaintenanceSeverity severity;
+
+    @Enumerated(EnumType.STRING)
+    private MaintenanceStatus status;
+
+    @Column(name = "resolved_at")
+    private LocalDateTime resolvedAt;
+
+    @Column(name = "reported_by")
+    private UUID reportedBy;
 }
+

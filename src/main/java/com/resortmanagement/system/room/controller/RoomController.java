@@ -13,7 +13,9 @@ File: room/controller/RoomController.java
 package com.resortmanagement.system.room.controller;
 
 
-import org.springframework.http.ResponseEntity;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,46 +25,41 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import com.resortmanagement.system.room.service.RoomService;
 import com.resortmanagement.system.room.entity.Room;
+import com.resortmanagement.system.room.service.RoomService;
 
 @RestController
-@RequestMapping("/api/room/rooms")
+@RequestMapping("/api/rooms")
 public class RoomController {
 
-    private final RoomService service;
+    private final RoomService roomService;
 
     public RoomController(RoomService roomService) {
-        this.service = roomService;
-    }
-
-    @GetMapping
-    public ResponseEntity<List<Room>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(this.service.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Room> getById(@PathVariable Long id) {
-        return this.service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        this.roomService = roomService;
     }
 
     @PostMapping
-    public ResponseEntity<Room> create(@RequestBody Room entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(this.service.save(entity));
+    public Room create(@RequestBody Room room) {
+        return roomService.createRoom(room);
+    }
+
+    @GetMapping("/{id}")
+    public Room get(@PathVariable UUID id) {
+        return roomService.getRoom(id);
+    }
+
+    @GetMapping
+    public List<Room> getAll() {
+        return roomService.getAllRooms();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Room> update(@PathVariable Long id, @RequestBody Room entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(this.service.save(entity));
+    public Room update(@PathVariable UUID id, @RequestBody Room room) {
+        return roomService.updateRoom(id, room);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        this.service.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public void delete(@PathVariable UUID id) {
+        roomService.deleteRoom(id);
     }
 }

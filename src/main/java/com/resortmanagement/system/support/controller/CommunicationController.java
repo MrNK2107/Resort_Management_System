@@ -28,41 +28,22 @@ import com.resortmanagement.system.support.service.CommunicationService;
 import com.resortmanagement.system.support.entity.Communication;
 
 @RestController
-@RequestMapping("/api/support/communications")
+@RequestMapping("/api/communications")
 public class CommunicationController {
 
     private final CommunicationService service;
 
-    public CommunicationController(CommunicationService communicationService) {
-        this.service = communicationService;
-    }
-
-    @GetMapping
-    public ResponseEntity<List<Communication>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(this.service.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Communication> getById(@PathVariable Long id) {
-        return this.service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public CommunicationController(CommunicationService service) {
+        this.service = service;
     }
 
     @PostMapping
-    public ResponseEntity<Communication> create(@RequestBody Communication entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(this.service.save(entity));
+    public Communication create(@RequestBody Communication communication) {
+        return service.create(communication);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Communication> update(@PathVariable Long id, @RequestBody Communication entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(this.service.save(entity));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        this.service.deleteById(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping
+    public List<Communication> getAll() {
+        return service.getAll();
     }
 }

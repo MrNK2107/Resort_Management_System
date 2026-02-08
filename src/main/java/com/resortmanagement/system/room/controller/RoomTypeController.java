@@ -27,41 +27,23 @@ import com.resortmanagement.system.room.service.RoomTypeService;
 import com.resortmanagement.system.room.entity.RoomType;
 
 @RestController
-@RequestMapping("/api/room/roomtypes")
+@RequestMapping("/api/room-types")
 public class RoomTypeController {
 
     private final RoomTypeService service;
 
-    public RoomTypeController(RoomTypeService roomTypeService) {
-        this.service = roomTypeService;
-    }
-
-    @GetMapping
-    public ResponseEntity<List<RoomType>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(this.service.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<RoomType> getById(@PathVariable Long id) {
-        return this.service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public RoomTypeController(RoomTypeService service) {
+        this.service = service;
     }
 
     @PostMapping
-    public ResponseEntity<RoomType> create(@RequestBody RoomType entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(this.service.save(entity));
+    public RoomType create(@RequestBody RoomType roomType) {
+        return service.create(roomType);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<RoomType> update(@PathVariable Long id, @RequestBody RoomType entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(this.service.save(entity));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        this.service.deleteById(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping
+    public List<RoomType> getAll() {
+        return service.getAll();
     }
 }
+

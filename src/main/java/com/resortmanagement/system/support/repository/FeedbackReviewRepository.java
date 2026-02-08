@@ -1,10 +1,13 @@
 package com.resortmanagement.system.support.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.UUID;
+
 import org.springframework.stereotype.Repository;
+
+import com.resortmanagement.system.common.repository.SoftDeleteRepository;
 import com.resortmanagement.system.support.entity.FeedbackReview;
 
 @Repository
-public interface FeedbackReviewRepository extends JpaRepository<FeedbackReview, Long> {
-    // TODO: add custom queries if needed
+public interface FeedbackReviewRepository
+        extends SoftDeleteRepository<FeedbackReview, UUID> {
 }

@@ -1,10 +1,13 @@
 package com.resortmanagement.system.room.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.UUID;
+
 import org.springframework.stereotype.Repository;
+
+import com.resortmanagement.system.common.repository.SoftDeleteRepository;
 import com.resortmanagement.system.room.entity.RoomBlock;
 
 @Repository
-public interface RoomBlockRepository extends JpaRepository<RoomBlock, Long> {
+public interface RoomBlockRepository extends SoftDeleteRepository<RoomBlock, UUID> {
     // TODO: add custom queries if needed
 }

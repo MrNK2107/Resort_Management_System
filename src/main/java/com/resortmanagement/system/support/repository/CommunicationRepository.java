@@ -1,10 +1,14 @@
 package com.resortmanagement.system.support.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.UUID;
+
 import org.springframework.stereotype.Repository;
+
+import com.resortmanagement.system.common.repository.SoftDeleteRepository;
 import com.resortmanagement.system.support.entity.Communication;
 
 @Repository
-public interface CommunicationRepository extends JpaRepository<Communication, Long> {
-    // TODO: add custom queries if needed
+public interface CommunicationRepository
+        extends SoftDeleteRepository<Communication, UUID> {
 }
+

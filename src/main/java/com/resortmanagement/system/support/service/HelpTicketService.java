@@ -1,10 +1,13 @@
 package com.resortmanagement.system.support.service;
 
-import org.springframework.stereotype.Service;
+import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
-import com.resortmanagement.system.support.repository.HelpTicketRepository;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.resortmanagement.system.support.entity.HelpTicket;
+import com.resortmanagement.system.support.repository.HelpTicketRepository;
 
 @Service
 public class HelpTicketService {
@@ -15,23 +18,16 @@ public class HelpTicketService {
         this.repository = repository;
     }
 
-    public List<HelpTicket> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    public HelpTicket create(HelpTicket ticket) {
+        return repository.save(ticket);
     }
 
-    public Optional<HelpTicket> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
+    public List<HelpTicket> getOpenTickets() {
+        return repository.findByDeletedFalse();
     }
 
-    public HelpTicket save(HelpTicket entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
-    }
-
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+    public void close(UUID id) {
+        repository.softDeleteById(id, Instant.now());
     }
 }
+

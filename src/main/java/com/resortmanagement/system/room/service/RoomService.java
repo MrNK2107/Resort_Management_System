@@ -1,37 +1,50 @@
 package com.resortmanagement.system.room.service;
 
-import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.Optional;
-import com.resortmanagement.system.room.repository.RoomRepository;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.resortmanagement.system.room.entity.Room;
+import com.resortmanagement.system.room.repository.RoomRepository;
 
 @Service
 public class RoomService {
 
-    private final RoomRepository repository;
+    private final RoomRepository roomRepository;
 
-    public RoomService(RoomRepository repository) {
-        this.repository = repository;
+    public RoomService(RoomRepository roomRepository) {
+        this.roomRepository = roomRepository;
     }
 
-    public List<Room> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    public Room createRoom(Room room) {
+        return roomRepository.save(room);
     }
 
-    public Optional<Room> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
+    public Room getRoom(UUID id) {
+        return roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
     }
 
-    public Room save(Room entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
+    public List<Room> getAllRooms() {
+        return roomRepository.findAll();
     }
 
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+    public Room updateRoom(UUID id, Room updated) {
+        Room room = getRoom(id);
+
+        room.setRoomNumber(updated.getRoomNumber());
+        room.setFloor(updated.getFloor());
+        room.setStatus(updated.getStatus());
+        room.setDescription(updated.getDescription());
+        room.setMaxOccupancy(updated.getMaxOccupancy());
+        room.setRoomTypeId(updated.getRoomTypeId());
+
+        return roomRepository.save(room);
+    }
+
+    public void deleteRoom(UUID id) {
+        roomRepository.deleteById(id);
     }
 }
+

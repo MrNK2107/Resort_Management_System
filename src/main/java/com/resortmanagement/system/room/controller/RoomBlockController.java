@@ -12,14 +12,22 @@ File: room/controller/RoomBlockController.java
 package com.resortmanagement.system.room.controller;
 
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import com.resortmanagement.system.room.service.RoomBlockService;
+import java.util.UUID;
+
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.resortmanagement.system.room.entity.RoomBlock;
+import com.resortmanagement.system.room.service.RoomBlockService;
 
 @RestController
-@RequestMapping("/api/room/roomblocks")
+@RequestMapping("/api/room-blocks")
 public class RoomBlockController {
 
     private final RoomBlockService service;
@@ -28,32 +36,18 @@ public class RoomBlockController {
         this.service = service;
     }
 
-    @GetMapping
-    public ResponseEntity<List<RoomBlock>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(service.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<RoomBlock> getById(@PathVariable Long id) {
-        return service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
-    }
-
     @PostMapping
-    public ResponseEntity<RoomBlock> create(@RequestBody RoomBlock entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(service.save(entity));
+    public RoomBlock block(@RequestBody RoomBlock block) {
+        return service.block(block);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<RoomBlock> update(@PathVariable Long id, @RequestBody RoomBlock entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(service.save(entity));
+    @GetMapping
+    public List<RoomBlock> active() {
+        return service.getActiveBlocks();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public void unblock(@PathVariable UUID id) {
+        service.unblock(id);
     }
 }

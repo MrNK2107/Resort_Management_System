@@ -1,10 +1,13 @@
 package com.resortmanagement.system.room.service;
 
-import org.springframework.stereotype.Service;
+import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
-import com.resortmanagement.system.room.repository.HousekeepingTaskRepository;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.resortmanagement.system.room.entity.HousekeepingTask;
+import com.resortmanagement.system.room.repository.HousekeepingTaskRepository;
 
 @Service
 public class HousekeepingTaskService {
@@ -15,23 +18,15 @@ public class HousekeepingTaskService {
         this.repository = repository;
     }
 
-    public List<HousekeepingTask> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    public HousekeepingTask create(HousekeepingTask task) {
+        return repository.save(task);
     }
 
-    public Optional<HousekeepingTask> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
+    public List<HousekeepingTask> getPending() {
+        return repository.findByDeletedFalse();
     }
 
-    public HousekeepingTask save(HousekeepingTask entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
-    }
-
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+    public void complete(UUID id) {
+        repository.softDeleteById(id, Instant.now());
     }
 }

@@ -1,10 +1,14 @@
 package com.resortmanagement.system.room.service;
 
-import org.springframework.stereotype.Service;
+import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
-import com.resortmanagement.system.room.repository.MaintenanceRequestRepository;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.resortmanagement.system.room.entity.MaintenanceRequest;
+import com.resortmanagement.system.room.repository.MaintenanceRequestRepository;
+
 
 @Service
 public class MaintenanceRequestService {
@@ -15,23 +19,16 @@ public class MaintenanceRequestService {
         this.repository = repository;
     }
 
-    public List<MaintenanceRequest> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    public MaintenanceRequest create(MaintenanceRequest request) {
+        return repository.save(request);
     }
 
-    public Optional<MaintenanceRequest> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
+    public List<MaintenanceRequest> getAllOpen() {
+        return repository.findByDeletedFalse();
     }
 
-    public MaintenanceRequest save(MaintenanceRequest entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
-    }
-
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+    public void close(UUID id) {
+        repository.softDeleteById(id, Instant.now());
     }
 }
+

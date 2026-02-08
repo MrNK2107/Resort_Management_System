@@ -1,10 +1,13 @@
 package com.resortmanagement.system.room.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.UUID;
+
 import org.springframework.stereotype.Repository;
+
+import com.resortmanagement.system.common.repository.SoftDeleteRepository;
 import com.resortmanagement.system.room.entity.MaintenanceRequest;
 
 @Repository
-public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceRequest, Long> {
+public interface MaintenanceRequestRepository extends SoftDeleteRepository<MaintenanceRequest, UUID> {
     // TODO: add custom queries if needed
 }
