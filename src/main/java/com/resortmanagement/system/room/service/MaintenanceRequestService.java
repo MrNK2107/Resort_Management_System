@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.resortmanagement.system.room.entity.MaintenanceRequest;
 import com.resortmanagement.system.room.repository.MaintenanceRequestRepository;
 
-
 @Service
 public class MaintenanceRequestService {
 

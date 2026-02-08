@@ -1,33 +1,33 @@
-package com.resortmanagement.system.booking.service;
+package com.resortmanagement.system.room.service;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import com.resortmanagement.system.booking.entity.Reservation;
-import com.resortmanagement.system.booking.repository.ReservationRepository;
+import com.resortmanagement.system.room.entity.RoomAmenity;
+import com.resortmanagement.system.room.repository.RoomAmenityRepository;
 
 @Service
-public class ReservationService {
+public class RoomAmenityService {
 
-    private final ReservationRepository repository;
+    private final RoomAmenityRepository repository;
 
-    public ReservationService(ReservationRepository repository) {
+    public RoomAmenityService(RoomAmenityRepository repository) {
         this.repository = repository;
     }
 
-    public List<Reservation> findAll() {
+    public List<RoomAmenity> findAll() {
         // TODO: add pagination and filtering
         return repository.findAll();
     }
 
-    public Optional<Reservation> findById(Long id) {
+    public Optional<RoomAmenity> findById(Long id) {
         // TODO: add caching and error handling
         return repository.findById(id);
     }
 
-    public Reservation save(Reservation entity) {
+    public RoomAmenity save(RoomAmenity entity) {
         // TODO: add validation and business rules
         return repository.save(entity);
     }

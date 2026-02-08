@@ -1,15 +1,13 @@
 /*
-TODO: RateHistoryController.java
+TODO: RoomAmenityController.java
 Purpose:
- - Manage seasonal rate overrides associated to RatePlan.
+ - Manage list of amenities and association to rooms.
 Endpoints:
- - POST /api/v1/rate-plans/{id}/history
- - GET /api/v1/rate-plans/{id}/history
-Responsibilities:
- - Ensure RateHistory date ranges are non-overlapping and validate rules.
-File: pricing/controller/RateHistoryController.java
+ - POST /api/v1/room-amenities
+ - GET /api/v1/rooms/{id}/amenities
+File: room/controller/RoomAmenityController.java
 */
-package com.resortmanagement.system.pricing.controller;
+package com.resortmanagement.system.room.controller;
 
 import java.util.List;
 
@@ -23,38 +21,38 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.resortmanagement.system.pricing.entity.RateHistory;
-import com.resortmanagement.system.pricing.service.RateHistoryService;
+import com.resortmanagement.system.room.entity.RoomAmenity;
+import com.resortmanagement.system.room.service.RoomAmenityService;
 
 @RestController
-@RequestMapping("/api/pricing/ratehistories")
-public class RateHistoryController {
+@RequestMapping("/api/room/roomamenities")
+public class RoomAmenityController {
 
-    private final RateHistoryService service;
+    private final RoomAmenityService service;
 
-    public RateHistoryController(RateHistoryService service) {
+    public RoomAmenityController(RoomAmenityService service) {
         this.service = service;
     }
 
     @GetMapping
-    public ResponseEntity<List<RateHistory>> getAll() {
+    public ResponseEntity<List<RoomAmenity>> getAll() {
         // TODO: add pagination and filtering params
         return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RateHistory> getById(@PathVariable Long id) {
+    public ResponseEntity<RoomAmenity> getById(@PathVariable Long id) {
         return service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<RateHistory> create(@RequestBody RateHistory entity) {
+    public ResponseEntity<RoomAmenity> create(@RequestBody RoomAmenity entity) {
         // TODO: add validation
         return ResponseEntity.ok(service.save(entity));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RateHistory> update(@PathVariable Long id, @RequestBody RateHistory entity) {
+    public ResponseEntity<RoomAmenity> update(@PathVariable Long id, @RequestBody RoomAmenity entity) {
         // TODO: implement update logic
         return ResponseEntity.ok(service.save(entity));
     }
