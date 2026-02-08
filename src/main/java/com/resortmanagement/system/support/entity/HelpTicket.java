@@ -21,17 +21,17 @@ package com.resortmanagement.system.support.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-
 import com.resortmanagement.system.common.audit.AuditableSoftDeletable;
 import com.resortmanagement.system.support.enums.TicketPriority;
 import com.resortmanagement.system.support.enums.TicketStatus;
 
-import jakarta.persistence.Id;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,7 +43,7 @@ import lombok.Setter;
 public class HelpTicket extends AuditableSoftDeletable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "CHAR(36)")
     private UUID id;
 

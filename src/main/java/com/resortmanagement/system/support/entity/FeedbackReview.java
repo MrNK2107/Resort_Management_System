@@ -25,6 +25,7 @@ import com.resortmanagement.system.common.audit.AuditableSoftDeletable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -37,7 +38,7 @@ import lombok.Setter;
 public class FeedbackReview extends AuditableSoftDeletable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "CHAR(36)")
     private UUID id;
 

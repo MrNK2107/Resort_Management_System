@@ -19,7 +19,7 @@ package com.resortmanagement.system.room.entity;
 
 import java.util.UUID;
 
-import com.resortmanagement.system.common.audit.Auditable;
+import com.resortmanagement.system.common.audit.AuditableSoftDeletable;
 import com.resortmanagement.system.room.enums.RoomStatus;
 
 import jakarta.persistence.Column;
@@ -27,6 +27,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -36,10 +37,10 @@ import lombok.Setter;
 @Table(name = "rooms")
 @Getter
 @Setter
-public class Room extends Auditable {
+public class Room extends AuditableSoftDeletable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "room_number", nullable = false, unique = true)
