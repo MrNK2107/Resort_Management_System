@@ -16,10 +16,10 @@ import com.resortmanagement.system.reporting.repository.ReportMetaRepository;
  * ReportMetaService
  * Purpose:
  *  - Service layer for ReportMeta entity operations
- *  - Handles report metadata CRUD and soft-delete operations
+ *  - Handles report metadata operations (no deletion - immutable records)
  * Business Logic:
  *  - Validates report metadata before saving
- *  - Supports soft-delete for archival
+ *  - Report metadata is immutable once created
  */
 @Service
 @Transactional
@@ -33,12 +33,12 @@ public class ReportMetaService {
 
     @Transactional(readOnly = true)
     public List<ReportMeta> findAll() {
-        return repository.findByDeletedFalse();
+        return repository.findAll();
     }
 
     @Transactional(readOnly = true)
     public Optional<ReportMeta> findById(UUID id) {
-        return repository.findByIdAndDeletedFalse(id);
+        return repository.findById(id);
     }
 
     @Transactional(readOnly = true)
@@ -60,24 +60,11 @@ public class ReportMetaService {
         // Check for duplicate report name
         if (reportMeta.getId() == null) {
             Optional<ReportMeta> existing = repository.findByName(reportMeta.getName());
-            if (existing.isPresent() && !existing.get().isDeleted()) {
+            if (existing.isPresent()) {
                 throw new ApplicationException("Report with name already exists: " + reportMeta.getName());
             }
         }
         
         return repository.save(reportMeta);
-    }
-
-    public void softDeleteById(UUID id) {
-        ReportMeta reportMeta = repository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ApplicationException("Report metadata not found with id: " + id));
-        
-        repository.softDeleteById(id, Instant.now());
-    }
-
-    public void deleteById(UUID id) {
-        // Hard delete - typically not recommended for report metadata
-        // Consider using softDeleteById instead
-        repository.deleteById(id);
     }
 }

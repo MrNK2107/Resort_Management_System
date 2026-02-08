@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +27,6 @@ import jakarta.validation.Valid;
  *  - GET /api/reporting/reports/{id} - Get report metadata by ID
  *  - POST /api/reporting/reports - Create new report metadata
  *  - PUT /api/reporting/reports/{id} - Update report metadata
- *  - DELETE /api/reporting/reports/{id} - Soft-delete report metadata
  */
 @RestController
 @RequestMapping("/api/reporting/reports")
@@ -65,14 +63,5 @@ public class ReportMetaController {
         }
         reportMeta.setId(id);
         return ResponseEntity.ok(service.save(reportMeta));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        service.softDeleteById(id);
-        return ResponseEntity.noContent().build();
     }
 }

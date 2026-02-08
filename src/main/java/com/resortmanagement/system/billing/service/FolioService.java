@@ -18,10 +18,12 @@ import com.resortmanagement.system.common.exception.ApplicationException;
  * FolioService
  * Purpose:
  *  - Service layer for Folio entity operations
- *  - Handles folio creation, updates, and state transitions (OPEN -> CLOSED)
+ *  - Handles folio creation, updates, and state transitions (OPEN -> CLOSED -> VOID)
  * Business Logic:
  *  - closeFolio: Transitions folio from OPEN to CLOSED status
+ *  - voidFolio: Transitions folio to VOID status (for incorrect/cancelled folios)
  *  - Validates folio state before operations
+ *  - Financial records are never deleted, only state-transitioned
  */
 @Service
 @Transactional
@@ -68,14 +70,23 @@ public class FolioService {
         if (folio.getStatus() == FolioStatus.CLOSED) {
             throw new ApplicationException("Folio is already closed");
         }
+        if (folio.getStatus() == FolioStatus.VOID) {
+            throw new ApplicationException("Cannot close a voided folio");
+        }
         
         folio.setStatus(FolioStatus.CLOSED);
         return repository.save(folio);
     }
 
-    public void deleteById(UUID id) {
-        // Note: In production, consider validating that folio can be deleted
-        // (e.g., no associated invoices, or folio is not yet closed)
-        repository.deleteById(id);
+    public Folio voidFolio(UUID folioId) {
+        Folio folio = repository.findById(folioId)
+                .orElseThrow(() -> new ApplicationException("Folio not found with id: " + folioId));
+        
+        if (folio.getStatus() == FolioStatus.VOID) {
+            throw new ApplicationException("Folio is already voided");
+        }
+        
+        folio.setStatus(FolioStatus.VOID);
+        return repository.save(folio);
     }
 }

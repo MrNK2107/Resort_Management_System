@@ -25,17 +25,24 @@ package com.resortmanagement.system.billing.entity;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
 import com.resortmanagement.system.common.audit.Auditable;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
@@ -58,10 +65,6 @@ public class Invoice extends Auditable {
 
     @Column(name = "reservation_id", columnDefinition = "VARCHAR(36)")
     private UUID reservationId;
-
-    @NotNull
-    @Column(name = "guest_id", columnDefinition = "VARCHAR(36)", nullable = false)
-    private UUID guestId;
 
     @NotNull
     @Column(name = "issue_date", nullable = false)
@@ -88,6 +91,19 @@ public class Invoice extends Auditable {
     @Version
     @Column(name = "version")
     private Long version;
+
+    // JPA Relationships - Financial record chain: Folio -> Invoice -> Payment -> Refund
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "folio_id", insertable = false, updatable = false)
+    private Folio folio;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reservation_id", insertable = false, updatable = false)
+    private Object reservation; // Reference to Reservation entity (avoiding direct import to prevent circular dependency)
+
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
+    private List<Payment> payments = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {

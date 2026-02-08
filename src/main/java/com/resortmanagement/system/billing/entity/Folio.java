@@ -21,17 +21,24 @@
 package com.resortmanagement.system.billing.entity;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
 import com.resortmanagement.system.common.audit.Auditable;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -66,6 +73,20 @@ public class Folio extends Auditable {
 
     @Column(name = "total_amount", precision = 10, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;
+
+    // JPA Relationships - Financial record chain: Folio -> Invoice -> Payment -> Refund
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reservation_id", insertable = false, updatable = false)
+    private Object reservation; // Reference to Reservation entity (avoiding direct import to prevent circular dependency)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booking_guest_id", insertable = false, updatable = false)
+    private Object bookingGuest; // Reference to BookingGuest entity (avoiding direct import to prevent circular dependency)
+
+    @OneToMany(mappedBy = "folio", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
+    private List<Invoice> invoices = new ArrayList<>();
+
 
     @Override
     public boolean equals(Object o) {

@@ -6,8 +6,10 @@ package com.resortmanagement.system.billing.entity;
  * Values:
  *  - OPEN: Folio is open and charges can be added
  *  - CLOSED: Folio is closed and ready for invoicing
+ *  - VOID: Folio is voided (incorrect/cancelled, but record retained)
  */
 public enum FolioStatus {
     OPEN,
-    CLOSED
+    CLOSED,
+    VOID
 }

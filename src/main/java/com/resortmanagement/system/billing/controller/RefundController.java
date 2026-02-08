@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +27,6 @@ import jakarta.validation.Valid;
  *  - GET /api/billing/refunds/{id} - Get refund by ID
  *  - POST /api/billing/refunds - Create new refund request
  *  - POST /api/billing/refunds/{id}/process - Process refund (REQUESTED/PROCESSING -> SUCCESS/FAILED)
- *  - DELETE /api/billing/refunds/{id} - Delete refund (REQUESTED/FAILED only)
  */
 @RestController
 @RequestMapping(" /api/billing/refunds")
@@ -65,14 +63,5 @@ public class RefundController {
             @RequestParam(required = false) String providerRefundRef) {
         Refund processed = service.processRefund(id, success, providerRefundRef);
         return ResponseEntity.ok(processed);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        service.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 }

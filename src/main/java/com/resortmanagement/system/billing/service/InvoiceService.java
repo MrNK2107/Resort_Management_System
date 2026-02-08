@@ -44,8 +44,8 @@ public class InvoiceService {
     }
 
     @Transactional(readOnly = true)
-    public List<Invoice> findByGuestId(UUID guestId) {
-        return repository.findByGuestId(guestId);
+    public List<Invoice> findByFolioId(UUID folioId) {
+        return repository.findByFolioId(folioId);
     }
 
     @Transactional(readOnly = true)
@@ -55,8 +55,8 @@ public class InvoiceService {
 
     public Invoice save(Invoice invoice) {
         // Validation: ensure required fields are present
-        if (invoice.getGuestId() == null) {
-            throw new ApplicationException("Guest ID is required for invoice");
+        if (invoice.getFolioId() == null) {
+            throw new ApplicationException("Folio ID is required for invoice");
         }
         if (invoice.getTotalAmount() == null) {
             throw new ApplicationException("Total amount is required for invoice");
@@ -81,18 +81,5 @@ public class InvoiceService {
         invoice.setStatus(InvoiceStatus.ISSUED);
         invoice.setIssueDate(Instant.now());
         return repository.save(invoice);
-    }
-
-    public void deleteById(UUID id) {
-        // Note: Financial records should typically not be deleted
-        // Consider implementing soft-delete or only allowing deletion of DRAFT invoices
-        Invoice invoice = repository.findById(id)
-                .orElseThrow(() -> new ApplicationException("Invoice not found with id: " + id));
-        
-        if (invoice.getStatus() != InvoiceStatus.DRAFT) {
-            throw new ApplicationException("Only DRAFT invoices can be deleted");
-        }
-        
-        repository.deleteById(id);
     }
 }

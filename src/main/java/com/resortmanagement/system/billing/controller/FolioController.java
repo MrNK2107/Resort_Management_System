@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,8 +27,8 @@ import jakarta.validation.Valid;
  *  - GET /api/billing/folios/{id} - Get folio by ID
  *  - POST /api/billing/folios - Create new folio
  *  - PUT /api/billing/folios/{id} - Update folio
- *  - DELETE /api/billing/folios/{id} - Delete folio
  *  - POST /api/billing/folios/{id}/close - Close folio (state transition)
+ *  - POST /api/billing/folios/{id}/void - Void folio (for incorrect/cancelled folios)
  */
 @RestController
 @RequestMapping("/api/billing/folios")
@@ -74,12 +73,9 @@ public class FolioController {
         return ResponseEntity.ok(closed);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        service.deleteById(id);
-        return ResponseEntity.noContent().build();
+    @PostMapping("/{id}/void")
+    public ResponseEntity<Folio> voidFolio(@PathVariable UUID id) {
+        Folio voided = service.voidFolio(id);
+        return ResponseEntity.ok(voided);
     }
 }

@@ -48,10 +48,7 @@ public class PaymentService {
         return repository.findByInvoiceId(invoiceId);
     }
 
-    @Transactional(readOnly = true)
-    public List<Payment> findByGuestId(UUID guestId) {
-        return repository.findByGuestId(guestId);
-    }
+
 
     @Transactional(readOnly = true)
     public Optional<Payment> findByTransactionRef(String transactionRef) {
@@ -62,9 +59,6 @@ public class PaymentService {
         // Validation: ensure required fields are present
         if (payment.getInvoiceId() == null) {
             throw new ApplicationException("Invoice ID is required for payment");
-        }
-        if (payment.getGuestId() == null) {
-            throw new ApplicationException("Guest ID is required for payment");
         }
         if (payment.getAmount() == null || payment.getAmount().signum() <= 0) {
             throw new ApplicationException("Payment amount must be greater than zero");
@@ -98,18 +92,5 @@ public class PaymentService {
         payment.setProviderResponse(providerResponse);
         
         return repository.save(payment);
-    }
-
-    public void deleteById(UUID id) {
-        // Note: Payment records should typically not be deleted for audit purposes
-        // Consider throwing an exception or implementing soft-delete instead
-        Payment payment = repository.findById(id)
-                .orElseThrow(() -> new ApplicationException("Payment not found with id: " + id));
-        
-        if (payment.getStatus() == PaymentStatus.SUCCESS) {
-            throw new ApplicationException("Successful payments cannot be deleted");
-        }
-        
-        repository.deleteById(id);
     }
 }

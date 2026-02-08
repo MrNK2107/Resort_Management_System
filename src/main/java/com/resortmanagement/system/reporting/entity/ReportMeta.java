@@ -19,7 +19,7 @@ import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
-import com.resortmanagement.system.common.audit.AuditableSoftDeletable;
+import com.resortmanagement.system.common.audit.Auditable;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,7 +33,7 @@ import lombok.Setter;
 @Table(name = "report_meta")
 @Getter
 @Setter
-public class ReportMeta extends AuditableSoftDeletable {
+public class ReportMeta extends Auditable {
 
     @Id
     @UuidGenerator

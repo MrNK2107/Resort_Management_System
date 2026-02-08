@@ -89,16 +89,4 @@ public class RefundService {
         
         return repository.save(refund);
     }
-
-    public void deleteById(UUID id) {
-        // Note: Refund records should typically not be deleted for audit purposes
-        Refund refund = repository.findById(id)
-                .orElseThrow(() -> new ApplicationException("Refund not found with id: " + id));
-        
-        if (refund.getStatus() == RefundStatus.SUCCESS) {
-            throw new ApplicationException("Successful refunds cannot be deleted");
-        }
-        
-        repository.deleteById(id);
-    }
 }

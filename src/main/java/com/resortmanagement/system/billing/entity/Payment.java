@@ -24,6 +24,8 @@ package com.resortmanagement.system.billing.entity;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
@@ -31,11 +33,16 @@ import org.hibernate.annotations.UuidGenerator;
 import com.resortmanagement.system.common.audit.Auditable;
 import com.resortmanagement.system.common.enums.PaymentStatus;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -55,13 +62,6 @@ public class Payment extends Auditable {
     @NotNull
     @Column(name = "invoice_id", columnDefinition = "VARCHAR(36)", nullable = false)
     private UUID invoiceId;
-
-    @Column(name = "reservation_id", columnDefinition = "VARCHAR(36)")
-    private UUID reservationId;
-
-    @NotNull
-    @Column(name = "guest_id", columnDefinition = "VARCHAR(36)", nullable = false)
-    private UUID guestId;
 
     @NotNull
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
@@ -85,6 +85,15 @@ public class Payment extends Auditable {
 
     @Column(name = "processed_at")
     private Instant processedAt;
+
+    // JPA Relationships - Financial record chain: Folio -> Invoice -> Payment -> Refund
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invoice_id", insertable = false, updatable = false)
+    private Invoice invoice;
+
+    @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
+    private List<Refund> refunds = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {

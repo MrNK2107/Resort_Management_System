@@ -32,7 +32,10 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -52,9 +55,6 @@ public class Refund extends Auditable {
     @NotNull
     @Column(name = "payment_id", columnDefinition = "VARCHAR(36)", nullable = false)
     private UUID paymentId;
-
-    @Column(name = "invoice_id", columnDefinition = "VARCHAR(36)")
-    private UUID invoiceId;
 
     @NotNull
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
@@ -76,6 +76,12 @@ public class Refund extends Auditable {
 
     @Column(name = "provider_refund_ref", length = 100)
     private String providerRefundRef;
+
+    // JPA Relationships - Financial record chain: Folio -> Invoice -> Payment -> Refund
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id", insertable = false, updatable = false)
+    private Payment payment;
 
     @Override
     public boolean equals(Object o) {

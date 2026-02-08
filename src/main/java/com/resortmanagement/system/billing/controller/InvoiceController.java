@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +27,6 @@ import jakarta.validation.Valid;
  *  - GET /api/billing/invoices/{id} - Get invoice by ID
  *  - POST /api/billing/invoices - Create new invoice
  *  - PUT /api/billing/invoices/{id} - Update invoice
- *  - DELETE /api/billing/invoices/{id} - Delete invoice (DRAFT only)
  *  - POST /api/billing/invoices/{id}/issue - Issue invoice (DRAFT -> ISSUED)
  */
 @RestController
@@ -72,14 +70,5 @@ public class InvoiceController {
     public ResponseEntity<Invoice> issueInvoice(@PathVariable UUID id) {
         Invoice issued = service.issueInvoice(id);
         return ResponseEntity.ok(issued);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        service.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 }
