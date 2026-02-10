@@ -76,9 +76,9 @@ public class GuestService {
         guest.setFirstName("ANONYMIZED");
         guest.setLastName("ANONYMIZED");
         guest.setEmail("anon-" + guestId + "@example.com");
-        guest.setPhone(null);
-        guest.setAddress(null);
-        guest.setDob(null);
+        guest.setPhone((String) null);
+        guest.setAddress((String) null);
+        guest.setDob((java.time.LocalDate) null);
 
         guestRepository.save(guest);
     }
@@ -89,4 +89,4 @@ public class GuestService {
      * - Move reservations, invoices, orders
      * - Soft delete source guest
      */
-}    
+}

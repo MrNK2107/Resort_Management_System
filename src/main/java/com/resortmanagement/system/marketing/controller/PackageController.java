@@ -2,18 +2,14 @@ package com.resortmanagement.system.marketing.controller;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.resortmanagement.system.marketing.dto.PackageDTO;
+import com.resortmanagement.system.marketing.dto.packagedto.PackageRequest;
+import com.resortmanagement.system.marketing.dto.packagedto.PackageResponse;
 import com.resortmanagement.system.marketing.service.PackageService;
 
 @RestController
@@ -27,33 +23,34 @@ public class PackageController {
     }
 
     @GetMapping
-    public ResponseEntity<org.springframework.data.domain.Page<PackageDTO>> getAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(this.service.findAll(org.springframework.data.domain.PageRequest.of(page, size)));
+    public ResponseEntity<Page<PackageResponse>> getAllPackages(Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PackageDTO> getById(@PathVariable UUID id) {
-        return this.service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<PackageResponse> getPackageById(@PathVariable UUID id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<PackageDTO> create(@RequestBody PackageDTO dto) {
-        if (dto.getName() == null || dto.getPrice() == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(this.service.save(dto));
+    public ResponseEntity<PackageResponse> createPackage(@RequestBody PackageRequest request) {
+        PackageResponse created = service.save(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PackageDTO> update(@PathVariable UUID id, @RequestBody PackageDTO dto) {
-        return ResponseEntity.ok(this.service.update(id, dto));
+    public ResponseEntity<PackageResponse> updatePackage(
+            @PathVariable UUID id,
+            @RequestBody PackageRequest request) {
+        PackageResponse updated = service.update(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        this.service.deleteById(id);
+    public ResponseEntity<Void> deletePackage(@PathVariable UUID id) {
+        service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

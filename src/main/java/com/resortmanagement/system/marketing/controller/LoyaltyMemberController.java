@@ -1,24 +1,19 @@
 package com.resortmanagement.system.marketing.controller;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.resortmanagement.system.marketing.dto.LoyaltyMemberDTO;
+import com.resortmanagement.system.marketing.dto.loyaltymember.LoyaltyMemberRequest;
+import com.resortmanagement.system.marketing.dto.loyaltymember.LoyaltyMemberResponse;
 import com.resortmanagement.system.marketing.service.LoyaltyMemberService;
 
 @RestController
-@RequestMapping("/api/marketing/loyalty_members")
+@RequestMapping("/api/marketing/loyalty-members")
 public class LoyaltyMemberController {
 
     private final LoyaltyMemberService service;
@@ -28,39 +23,41 @@ public class LoyaltyMemberController {
     }
 
     @GetMapping
-    public ResponseEntity<org.springframework.data.domain.Page<LoyaltyMemberDTO>> getAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(service.findAll(org.springframework.data.domain.PageRequest.of(page, size)));
+    public ResponseEntity<Page<LoyaltyMemberResponse>> getAllLoyaltyMembers(Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LoyaltyMemberDTO> getById(@PathVariable UUID id) {
-        return service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<LoyaltyMemberResponse> getLoyaltyMemberById(@PathVariable UUID id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<LoyaltyMemberDTO> create(@RequestBody LoyaltyMemberDTO dto) {
-        if (dto.getGuestId() == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(service.save(dto));
+    public ResponseEntity<LoyaltyMemberResponse> createLoyaltyMember(@RequestBody LoyaltyMemberRequest request) {
+        LoyaltyMemberResponse created = service.save(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<LoyaltyMemberDTO> update(@PathVariable UUID id, @RequestBody LoyaltyMemberDTO dto) {
-        return ResponseEntity.ok(service.update(id, dto));
+    public ResponseEntity<LoyaltyMemberResponse> updateLoyaltyMember(
+            @PathVariable UUID id,
+            @RequestBody LoyaltyMemberRequest request) {
+        LoyaltyMemberResponse updated = service.update(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteLoyaltyMember(@PathVariable UUID id) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/award-points")
-    public ResponseEntity<Void> awardPoints(@PathVariable UUID id, @RequestParam BigDecimal amount) {
-        service.awardPoints(id, amount);
-        return ResponseEntity.ok().build();
+    @GetMapping("/guest/{guestId}")
+    public ResponseEntity<LoyaltyMemberResponse> getLoyaltyMemberByGuestId(@PathVariable UUID guestId) {
+        return service.findByGuestId(guestId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

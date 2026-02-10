@@ -1,68 +1,61 @@
 package com.resortmanagement.system.hr.controller;
 
-import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.resortmanagement.system.hr.dto.EmployeeDTO;
+import com.resortmanagement.system.hr.dto.employee.EmployeeRequest;
+import com.resortmanagement.system.hr.dto.employee.EmployeeResponse;
 import com.resortmanagement.system.hr.service.EmployeeService;
 
 @RestController
 @RequestMapping("/api/hr/employees")
 public class EmployeeController {
 
-    private final EmployeeService employeeService;
+    private final EmployeeService service;
 
     public EmployeeController(EmployeeService employeeService) {
-        this.employeeService = employeeService;
+        this.service = employeeService;
     }
 
     @GetMapping
-    public ResponseEntity<org.springframework.data.domain.Page<EmployeeDTO>> getAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity
-                .ok(this.employeeService.findAll(org.springframework.data.domain.PageRequest.of(page, size)));
+    public ResponseEntity<Page<EmployeeResponse>> getAllEmployees(Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EmployeeDTO> getById(@PathVariable UUID id) {
-        return this.employeeService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<EmployeeResponse> getEmployeeById(@PathVariable UUID id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<EmployeeDTO> create(@RequestBody EmployeeDTO dto) {
-        if (dto.getEmail() == null || dto.getEmail().isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(this.employeeService.save(dto));
-    }
-
-    @GetMapping("/available")
-    public ResponseEntity<List<EmployeeDTO>> getAvailableEmployees(@RequestParam Instant start,
-            @RequestParam Instant end) {
-        return ResponseEntity.ok(this.employeeService.findAvailableEmployees(start, end));
+    public ResponseEntity<EmployeeResponse> createEmployee(@RequestBody EmployeeRequest request) {
+        EmployeeResponse created = service.save(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EmployeeDTO> update(@PathVariable UUID id, @RequestBody EmployeeDTO dto) {
-        return ResponseEntity.ok(this.employeeService.update(id, dto));
+    public ResponseEntity<EmployeeResponse> updateEmployee(
+            @PathVariable UUID id,
+            @RequestBody EmployeeRequest request) {
+        EmployeeResponse updated = service.update(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        this.employeeService.deleteById(id);
+    public ResponseEntity<Void> deleteEmployee(@PathVariable UUID id) {
+        service.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<Page<EmployeeResponse>> getAvailableEmployees(Pageable pageable) {
+        return ResponseEntity.ok(service.findAvailableEmployees(pageable));
     }
 }

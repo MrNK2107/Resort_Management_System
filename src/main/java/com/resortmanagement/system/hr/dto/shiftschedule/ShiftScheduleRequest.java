@@ -1,4 +1,4 @@
-package com.resortmanagement.system.hr.dto;
+package com.resortmanagement.system.hr.dto.shiftschedule;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -11,10 +11,8 @@ import lombok.AllArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShiftScheduleDTO {
-    private UUID id;
+public class ShiftScheduleRequest {
     private UUID employeeId;
-    private String employeeName;
     private Instant startTime;
     private Instant endTime;
     private String position;

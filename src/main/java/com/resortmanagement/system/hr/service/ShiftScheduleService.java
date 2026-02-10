@@ -1,5 +1,6 @@
 package com.resortmanagement.system.hr.service;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -8,11 +9,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.resortmanagement.system.hr.dto.HRMapper;
-import com.resortmanagement.system.hr.dto.ShiftScheduleDTO;
-import com.resortmanagement.system.hr.entity.Employee;
+import com.resortmanagement.system.hr.dto.shiftschedule.ShiftScheduleRequest;
+import com.resortmanagement.system.hr.dto.shiftschedule.ShiftScheduleResponse;
 import com.resortmanagement.system.hr.entity.ShiftSchedule;
-import com.resortmanagement.system.hr.repository.EmployeeRepository;
+import com.resortmanagement.system.hr.mapper.ShiftScheduleMapper;
 import com.resortmanagement.system.hr.repository.ShiftScheduleRepository;
 
 @Service
@@ -20,63 +20,45 @@ import com.resortmanagement.system.hr.repository.ShiftScheduleRepository;
 public class ShiftScheduleService {
 
     private final ShiftScheduleRepository repository;
-    private final EmployeeRepository employeeRepository;
-    private final HRMapper mapper;
+    private final ShiftScheduleMapper mapper;
 
-    public ShiftScheduleService(
-            ShiftScheduleRepository repository,
-            EmployeeRepository employeeRepository,
-            HRMapper mapper) {
-        this.repository = repository;
-        this.employeeRepository = employeeRepository;
-        this.mapper = mapper;
+    public ShiftScheduleService(ShiftScheduleRepository shiftScheduleRepository,
+            ShiftScheduleMapper shiftScheduleMapper) {
+        this.repository = shiftScheduleRepository;
+        this.mapper = shiftScheduleMapper;
     }
 
     @Transactional(readOnly = true)
-    public Page<ShiftScheduleDTO> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toDTO);
+    public Page<ShiftScheduleResponse> findAll(Pageable pageable) {
+        return repository.findByDeletedFalse(pageable).map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
-    public Optional<ShiftScheduleDTO> findById(UUID id) {
-        return repository.findById(id).map(mapper::toDTO);
+    public Optional<ShiftScheduleResponse> findById(UUID id) {
+        return repository.findByIdAndDeletedFalse(id).map(mapper::toResponse);
     }
 
-    public ShiftScheduleDTO save(ShiftScheduleDTO dto) {
+    public ShiftScheduleResponse save(ShiftScheduleRequest dto) {
         if (dto.getEmployeeId() == null) {
-            throw new IllegalArgumentException("Employee is required");
+            throw new IllegalArgumentException("Employee ID is required");
         }
-        if (dto.getStartTime() == null || dto.getEndTime() == null) {
-            throw new IllegalArgumentException("Start and End times are required");
+        if (dto.getStartTime() == null) {
+            throw new IllegalArgumentException("Start time is required");
         }
-        if (dto.getStartTime().isAfter(dto.getEndTime())) {
-            throw new IllegalArgumentException("Start time must be before end time");
+        if (dto.getEndTime() == null) {
+            throw new IllegalArgumentException("End time is required");
         }
 
-        ShiftSchedule entity = mapper.toEntity(dto, null);
-
-        Employee employee = employeeRepository.findById(dto.getEmployeeId())
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-        entity.setEmployee(employee);
-
-        return mapper.toDTO(repository.save(entity));
+        ShiftSchedule shiftSchedule = mapper.toEntity(dto);
+        ShiftSchedule saved = repository.save(shiftSchedule);
+        return mapper.toResponse(saved);
     }
 
-    public ShiftScheduleDTO update(UUID id, ShiftScheduleDTO dto) {
-        return repository.findById(id)
+    public ShiftScheduleResponse update(UUID id, ShiftScheduleRequest dto) {
+        return repository.findByIdAndDeletedFalse(id)
                 .map(existing -> {
-                    if (dto.getEmployeeId() != null && !existing.getEmployee().getId().equals(dto.getEmployeeId())) {
-                        Employee employee = employeeRepository.findById(dto.getEmployeeId())
-                                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-                        existing.setEmployee(employee);
-                    }
-
-                    existing.setStartTime(dto.getStartTime());
-                    existing.setEndTime(dto.getEndTime());
-                    existing.setPosition(dto.getPosition());
-                    existing.setLocation(dto.getLocation());
-
-                    return mapper.toDTO(repository.save(existing));
+                    mapper.updateEntity(existing, dto);
+                    return mapper.toResponse(repository.save(existing));
                 })
                 .orElseThrow(() -> new RuntimeException("ShiftSchedule not found with id " + id));
     }
@@ -85,6 +67,18 @@ public class ShiftScheduleService {
         if (!repository.existsById(id)) {
             throw new RuntimeException("ShiftSchedule not found with id " + id);
         }
-        repository.deleteById(id);
+        repository.softDeleteById(id, Instant.now());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ShiftScheduleResponse> findByEmployeeId(UUID employeeId, Pageable pageable) {
+        return repository.findByEmployee_IdAndDeletedFalse(employeeId, pageable)
+                .map(mapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ShiftScheduleResponse> findByTimeRange(Instant startTime, Instant endTime, Pageable pageable) {
+        return repository.findByStartTimeBetweenAndDeletedFalse(startTime, endTime, pageable)
+                .map(mapper::toResponse);
     }
 }

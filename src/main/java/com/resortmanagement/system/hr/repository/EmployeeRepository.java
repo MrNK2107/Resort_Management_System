@@ -13,4 +13,8 @@ public interface EmployeeRepository extends SoftDeleteRepository<Employee, UUID>
 
     org.springframework.data.domain.Page<Employee> findByDeletedFalse(
             org.springframework.data.domain.Pageable pageable);
+
+    org.springframework.data.domain.Page<Employee> findByStatusAndDeletedFalse(
+            Employee.EmployeeStatus status,
+            org.springframework.data.domain.Pageable pageable);
 }

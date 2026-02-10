@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.resortmanagement.system.marketing.dto.MarketingMapper;
 import com.resortmanagement.system.marketing.dto.PackageItemDTO;
 import com.resortmanagement.system.marketing.entity.PackageItem;
 import com.resortmanagement.system.marketing.repository.PackageItemRepository;
@@ -18,27 +17,23 @@ public class PackageItemService {
 
     private final PackageItemRepository repository;
     private final PackageRepository packageRepository;
-    // External repositories removed to avoid context failure on stub entities
-    private final MarketingMapper mapper;
 
     public PackageItemService(
             PackageItemRepository repository,
-            PackageRepository packageRepository,
-            MarketingMapper mapper) {
+            PackageRepository packageRepository) {
         this.repository = repository;
         this.packageRepository = packageRepository;
-        this.mapper = mapper;
     }
 
     @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<PackageItemDTO> findAll(
             org.springframework.data.domain.Pageable pageable) {
-        return repository.findByDeletedFalse(pageable).map(mapper::toDTO);
+        return repository.findByDeletedFalse(pageable).map(this::toDTO);
     }
 
     @Transactional(readOnly = true)
     public Optional<PackageItemDTO> findById(UUID id) {
-        return repository.findByIdAndDeletedFalse(id).map(mapper::toDTO);
+        return repository.findByIdAndDeletedFalse(id).map(this::toDTO);
     }
 
     public PackageItemDTO save(PackageItemDTO dto) {
@@ -53,8 +48,6 @@ public class PackageItemService {
                 .orElseThrow(() -> new IllegalArgumentException("Package not found")));
 
         // Set optional item IDs directly
-        // Note: Validation of existence is skipped as external modules are currently
-        // stubs
         entity.setRoomTypeId(dto.getRoomTypeId());
         entity.setServiceItemId(dto.getServiceItemId());
         entity.setMenuItemId(dto.getMenuItemId());
@@ -80,14 +73,17 @@ public class PackageItemService {
         }
         entity.setPrice(dto.getPrice());
 
-        return mapper.toDTO(repository.save(entity));
+        return toDTO(repository.save(entity));
     }
 
     public PackageItemDTO update(UUID id, PackageItemDTO dto) {
         return repository.findByIdAndDeletedFalse(id)
                 .map(existing -> {
                     // Update quantity and price
-                    mapper.updateEntityFromDTO(existing, dto);
+                    if (dto.getQty() != null)
+                        existing.setQty(dto.getQty());
+                    if (dto.getPrice() != null)
+                        existing.setPrice(dto.getPrice());
 
                     // Update relationships if provided
                     if (dto.getPkgId() != null) {
@@ -104,12 +100,26 @@ public class PackageItemService {
                     if (dto.getInventoryItemId() != null)
                         existing.setInventoryItemId(dto.getInventoryItemId());
 
-                    return mapper.toDTO(repository.save(existing));
+                    return toDTO(repository.save(existing));
                 })
                 .orElseThrow(() -> new RuntimeException("PackageItem not found with id " + id));
     }
 
     public void deleteById(UUID id) {
         repository.softDeleteById(id, java.time.Instant.now());
+    }
+
+    // Simple DTO mapping
+    private PackageItemDTO toDTO(PackageItem entity) {
+        PackageItemDTO dto = new PackageItemDTO();
+        dto.setId(entity.getId());
+        dto.setPkgId(entity.getPkg() != null ? entity.getPkg().getId() : null);
+        dto.setRoomTypeId(entity.getRoomTypeId());
+        dto.setServiceItemId(entity.getServiceItemId());
+        dto.setMenuItemId(entity.getMenuItemId());
+        dto.setInventoryItemId(entity.getInventoryItemId());
+        dto.setQty(entity.getQty());
+        dto.setPrice(entity.getPrice());
+        return dto;
     }
 }

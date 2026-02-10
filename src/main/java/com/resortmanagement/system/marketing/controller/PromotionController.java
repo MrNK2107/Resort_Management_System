@@ -1,20 +1,15 @@
 package com.resortmanagement.system.marketing.controller;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.resortmanagement.system.marketing.dto.PromotionDTO;
+import com.resortmanagement.system.marketing.dto.promotion.PromotionRequest;
+import com.resortmanagement.system.marketing.dto.promotion.PromotionResponse;
 import com.resortmanagement.system.marketing.service.PromotionService;
 
 @RestController
@@ -28,41 +23,34 @@ public class PromotionController {
     }
 
     @GetMapping
-    public ResponseEntity<org.springframework.data.domain.Page<PromotionDTO>> getAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(this.service.findAll(org.springframework.data.domain.PageRequest.of(page, size)));
+    public ResponseEntity<Page<PromotionResponse>> getAllPromotions(Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PromotionDTO> getById(@PathVariable UUID id) {
-        return this.service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<PromotionResponse> getPromotionById(@PathVariable UUID id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<PromotionDTO> create(@RequestBody PromotionDTO dto) {
-        if (dto.getCode() == null || dto.getValidFrom() == null || dto.getValidTo() == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(this.service.save(dto));
+    public ResponseEntity<PromotionResponse> createPromotion(@RequestBody PromotionRequest request) {
+        PromotionResponse created = service.save(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PromotionDTO> update(@PathVariable UUID id, @RequestBody PromotionDTO dto) {
-        return ResponseEntity.ok(this.service.update(id, dto));
+    public ResponseEntity<PromotionResponse> updatePromotion(
+            @PathVariable UUID id,
+            @RequestBody PromotionRequest request) {
+        PromotionResponse updated = service.update(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        this.service.deleteById(id);
+    public ResponseEntity<Void> deletePromotion(@PathVariable UUID id) {
+        service.deleteById(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{id}/calculate-discount")
-    public ResponseEntity<BigDecimal> calculateDiscount(@PathVariable UUID id, @RequestParam BigDecimal price) {
-        if (price == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(this.service.calculateDiscount(id, price));
     }
 }

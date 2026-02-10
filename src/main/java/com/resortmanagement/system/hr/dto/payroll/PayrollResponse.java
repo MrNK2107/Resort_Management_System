@@ -1,4 +1,4 @@
-package com.resortmanagement.system.hr.dto;
+package com.resortmanagement.system.hr.dto.payroll;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -13,14 +13,16 @@ import lombok.AllArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PayrollDTO {
+public class PayrollResponse {
     private UUID id;
     private UUID employeeId;
-    private String employeeName;
+    private String employeeName; // Derived from Employee entity
     private LocalDate periodStart;
     private LocalDate periodEnd;
     private BigDecimal grossPay;
     private BigDecimal deductions;
     private BigDecimal netPay;
     private Instant paidAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

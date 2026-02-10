@@ -1,84 +1,68 @@
 package com.resortmanagement.system.marketing.service;
 
-import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.resortmanagement.system.marketing.dto.MarketingMapper;
-import com.resortmanagement.system.marketing.dto.PromotionDTO;
+import com.resortmanagement.system.marketing.dto.promotion.PromotionRequest;
+import com.resortmanagement.system.marketing.dto.promotion.PromotionResponse;
 import com.resortmanagement.system.marketing.entity.Promotion;
+import com.resortmanagement.system.marketing.mapper.PromotionMapper;
 import com.resortmanagement.system.marketing.repository.PromotionRepository;
-import com.resortmanagement.system.marketing.strategy.PromotionStrategy;
-import com.resortmanagement.system.marketing.strategy.PromotionStrategyFactory;
 
 @Service
 @Transactional
 public class PromotionService {
 
     private final PromotionRepository repository;
-    private final PromotionStrategyFactory strategyFactory;
-    private final MarketingMapper mapper;
+    private final PromotionMapper mapper;
 
-    public PromotionService(PromotionRepository repository, PromotionStrategyFactory strategyFactory,
-            MarketingMapper mapper) {
-        this.repository = repository;
-        this.strategyFactory = strategyFactory;
-        this.mapper = mapper;
+    public PromotionService(PromotionRepository promotionRepository, PromotionMapper promotionMapper) {
+        this.repository = promotionRepository;
+        this.mapper = promotionMapper;
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<PromotionDTO> findAll(
-            org.springframework.data.domain.Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toDTO);
+    public Page<PromotionResponse> findAll(Pageable pageable) {
+        return repository.findByDeletedFalse(pageable).map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
-    public Optional<PromotionDTO> findById(UUID id) {
-        return repository.findById(id).map(mapper::toDTO);
+    public Optional<PromotionResponse> findById(UUID id) {
+        return repository.findByIdAndDeletedFalse(id).map(mapper::toResponse);
     }
 
-    public PromotionDTO update(UUID id, PromotionDTO dto) {
-        return repository.findById(id)
+    public PromotionResponse save(PromotionRequest dto) {
+        if (dto.getCode() == null || dto.getCode().isEmpty()) {
+            throw new IllegalArgumentException("Promotion code is required");
+        }
+        if (dto.getValidFrom() == null || dto.getValidTo() == null) {
+            throw new IllegalArgumentException("Valid from/to dates are required");
+        }
+
+        Promotion promotion = mapper.toEntity(dto);
+        Promotion saved = repository.save(promotion);
+        return mapper.toResponse(saved);
+    }
+
+    public PromotionResponse update(UUID id, PromotionRequest dto) {
+        return repository.findByIdAndDeletedFalse(id)
                 .map(existing -> {
-                    existing.setCode(dto.getCode());
-                    existing.setDescription(dto.getDescription());
-                    existing.setDiscountType(dto.getDiscountType());
-                    existing.setValue(dto.getValue());
-                    existing.setValidFrom(dto.getValidFrom());
-                    existing.setValidTo(dto.getValidTo());
-                    existing.setUsageLimit(dto.getUsageLimit());
-                    existing.setTerms(dto.getTerms());
-                    return mapper.toDTO(repository.save(existing));
+                    mapper.updateEntity(existing, dto);
+                    return mapper.toResponse(repository.save(existing));
                 })
                 .orElseThrow(() -> new RuntimeException("Promotion not found with id " + id));
     }
 
-    public PromotionDTO save(PromotionDTO dto) {
-        if (dto.getCode() == null || dto.getCode().isEmpty()) {
-            throw new IllegalArgumentException("Promotion code is required");
-        }
-        if (dto.getValidFrom() != null && dto.getValidTo() != null &&
-                dto.getValidFrom().isAfter(dto.getValidTo())) {
-            throw new IllegalArgumentException("End date must be after start date");
-        }
-
-        Promotion entity = mapper.toEntity(dto);
-        return mapper.toDTO(repository.save(entity));
-    }
-
     public void deleteById(UUID id) {
-        repository.deleteById(id);
-    }
-
-    public BigDecimal calculateDiscount(UUID promotionId, BigDecimal originalPrice) {
-        return repository.findById(promotionId)
-                .map(promo -> {
-                    PromotionStrategy strategy = strategyFactory.getStrategy(promo.getDiscountType());
-                    return strategy.calculateDiscount(originalPrice, promo.getValue());
-                })
-                .orElse(BigDecimal.ZERO);
+        if (!repository.existsById(id)) {
+            throw new RuntimeException("Promotion not found with id " + id);
+        }
+        repository.softDeleteById(id, Instant.now());
     }
 }

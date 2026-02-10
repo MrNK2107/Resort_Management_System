@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.resortmanagement.system.hr.dto.EmployeeRoleDTO;
-import com.resortmanagement.system.hr.dto.HRMapper;
 import com.resortmanagement.system.hr.entity.Employee;
 import com.resortmanagement.system.hr.entity.EmployeeRole;
 import com.resortmanagement.system.hr.entity.Role;
@@ -24,27 +23,24 @@ public class EmployeeRoleService {
     private final EmployeeRoleRepository repository;
     private final EmployeeRepository employeeRepository;
     private final RoleRepository roleRepository;
-    private final HRMapper mapper;
 
     public EmployeeRoleService(
             EmployeeRoleRepository repository,
             EmployeeRepository employeeRepository,
-            RoleRepository roleRepository,
-            HRMapper mapper) {
+            RoleRepository roleRepository) {
         this.repository = repository;
         this.employeeRepository = employeeRepository;
         this.roleRepository = roleRepository;
-        this.mapper = mapper;
     }
 
     @Transactional(readOnly = true)
     public Page<EmployeeRoleDTO> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toDTO);
+        return repository.findAll(pageable).map(this::toDTO);
     }
 
     @Transactional(readOnly = true)
     public Optional<EmployeeRoleDTO> findById(UUID id) {
-        return repository.findById(id).map(mapper::toDTO);
+        return repository.findById(id).map(this::toDTO);
     }
 
     public EmployeeRoleDTO save(EmployeeRoleDTO dto) {
@@ -68,7 +64,7 @@ public class EmployeeRoleService {
         entity.setAssignedDate(dto.getAssignedDate());
         entity.setEndDate(dto.getEndDate());
 
-        return mapper.toDTO(repository.save(entity));
+        return toDTO(repository.save(entity));
     }
 
     public EmployeeRoleDTO update(UUID id, EmployeeRoleDTO dto) {
@@ -88,7 +84,7 @@ public class EmployeeRoleService {
 
                     existing.setAssignedDate(dto.getAssignedDate());
                     existing.setEndDate(dto.getEndDate());
-                    return mapper.toDTO(repository.save(existing));
+                    return toDTO(repository.save(existing));
                 })
                 .orElseThrow(() -> new RuntimeException("EmployeeRole not found with id " + id));
     }
@@ -98,5 +94,16 @@ public class EmployeeRoleService {
             throw new RuntimeException("EmployeeRole not found with id " + id);
         }
         repository.deleteById(id);
+    }
+
+    // Simple DTO mapping
+    private EmployeeRoleDTO toDTO(EmployeeRole entity) {
+        EmployeeRoleDTO dto = new EmployeeRoleDTO();
+        dto.setId(entity.getId());
+        dto.setEmployeeId(entity.getEmployee() != null ? entity.getEmployee().getId() : null);
+        dto.setRoleId(entity.getRole() != null ? entity.getRole().getId() : null);
+        dto.setAssignedDate(entity.getAssignedDate());
+        dto.setEndDate(entity.getEndDate());
+        return dto;
     }
 }

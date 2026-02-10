@@ -4,12 +4,15 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.resortmanagement.system.hr.dto.HRMapper;
-import com.resortmanagement.system.hr.dto.RoleDTO;
+import com.resortmanagement.system.hr.dto.role.RoleRequest;
+import com.resortmanagement.system.hr.dto.role.RoleResponse;
 import com.resortmanagement.system.hr.entity.Role;
+import com.resortmanagement.system.hr.mapper.RoleMapper;
 import com.resortmanagement.system.hr.repository.RoleRepository;
 
 @Service
@@ -17,46 +20,46 @@ import com.resortmanagement.system.hr.repository.RoleRepository;
 public class RoleService {
 
     private final RoleRepository repository;
-    private final HRMapper mapper;
+    private final RoleMapper mapper;
 
-    public RoleService(RoleRepository repository, HRMapper mapper) {
-        this.repository = repository;
-        this.mapper = mapper;
+    public RoleService(RoleRepository roleRepository, RoleMapper roleMapper) {
+        this.repository = roleRepository;
+        this.mapper = roleMapper;
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<RoleDTO> findAll(org.springframework.data.domain.Pageable pageable) {
-        return repository.findByDeletedFalse(pageable).map(mapper::toDTO);
+    public Page<RoleResponse> findAll(Pageable pageable) {
+        return repository.findByDeletedFalse(pageable).map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
-    public Optional<RoleDTO> findById(UUID id) {
-        return repository.findByIdAndDeletedFalse(id).map(mapper::toDTO);
+    public Optional<RoleResponse> findById(UUID id) {
+        return repository.findByIdAndDeletedFalse(id).map(mapper::toResponse);
     }
 
-    public RoleDTO save(RoleDTO dto) {
+    public RoleResponse save(RoleRequest dto) {
         if (dto.getName() == null || dto.getName().isEmpty()) {
             throw new IllegalArgumentException("Role name is required");
         }
-        if (dto.getId() == null && repository.findByName(dto.getName()).isPresent()) {
-            throw new IllegalArgumentException("Role name already exists");
-        }
-        Role entity = mapper.toEntity(dto);
-        return mapper.toDTO(repository.save(entity));
+
+        Role role = mapper.toEntity(dto);
+        Role saved = repository.save(role);
+        return mapper.toResponse(saved);
     }
 
-    public RoleDTO update(UUID id, RoleDTO dto) {
+    public RoleResponse update(UUID id, RoleRequest dto) {
         return repository.findByIdAndDeletedFalse(id)
                 .map(existing -> {
-                    existing.setName(dto.getName());
-                    existing.setDescription(dto.getDescription());
-                    existing.setPermissionsJson(dto.getPermissions());
-                    return mapper.toDTO(repository.save(existing));
+                    mapper.updateEntity(existing, dto);
+                    return mapper.toResponse(repository.save(existing));
                 })
                 .orElseThrow(() -> new RuntimeException("Role not found with id " + id));
     }
 
     public void deleteById(UUID id) {
+        if (!repository.existsById(id)) {
+            throw new RuntimeException("Role not found with id " + id);
+        }
         repository.softDeleteById(id, Instant.now());
     }
 }

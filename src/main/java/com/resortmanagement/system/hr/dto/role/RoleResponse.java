@@ -1,5 +1,6 @@
-package com.resortmanagement.system.hr.dto;
+package com.resortmanagement.system.hr.dto.role;
 
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Data;
 import lombok.Builder;
@@ -10,9 +11,10 @@ import lombok.AllArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoleDTO {
+public class RoleResponse {
     private UUID id;
     private String name;
     private String description;
-    private String permissions;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

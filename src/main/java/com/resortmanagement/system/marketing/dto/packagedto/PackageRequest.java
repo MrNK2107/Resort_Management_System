@@ -1,9 +1,7 @@
-package com.resortmanagement.system.marketing.dto;
+package com.resortmanagement.system.marketing.dto.packagedto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
 import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -13,13 +11,11 @@ import lombok.AllArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PackageDTO {
-    private UUID id;
+public class PackageRequest {
     private String name;
     private String description;
     private BigDecimal price;
     private LocalDate validFrom;
     private LocalDate validTo;
     private Integer usageLimit;
-    private List<PackageItemDTO> items;
 }
