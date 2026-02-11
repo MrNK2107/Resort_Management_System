@@ -1,11 +1,15 @@
 package com.resortmanagement.system.fnb.repository;
 
+import com.resortmanagement.system.fnb.entity.MenuItemIngredient;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.resortmanagement.system.fnb.entity.MenuItemIngredient;
+import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface MenuItemIngredientRepository extends JpaRepository<MenuItemIngredient, Long> {
-    // TODO: add custom queries if needed
+public interface MenuItemIngredientRepository
+        extends JpaRepository<MenuItemIngredient, UUID> {
+
+    List<MenuItemIngredient> findByMenuItemId(UUID menuItemId);
 }

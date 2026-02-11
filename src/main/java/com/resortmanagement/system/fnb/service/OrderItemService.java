@@ -1,12 +1,14 @@
 package com.resortmanagement.system.fnb.service;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Service;
-
 import com.resortmanagement.system.fnb.entity.OrderItem;
 import com.resortmanagement.system.fnb.repository.OrderItemRepository;
+
+import org.jspecify.annotations.Nullable;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class OrderItemService {
@@ -17,19 +19,41 @@ public class OrderItemService {
         this.repository = repository;
     }
 
+    /**
+     * Fetch all order items
+     * (Order lifecycle is controlled by Order, not OrderItem)
+     */
+    @SuppressWarnings("rawtypes")
     public List<OrderItem> findAll() {
         return repository.findAll();
     }
 
-    public Optional<OrderItem> findById(Long id) {
+    @SuppressWarnings("rawtypes")
+    public Optional<OrderItem> findById(UUID id) {
         return repository.findById(id);
     }
 
-    public OrderItem save(OrderItem entity) {
-        return repository.save(entity);
+    @SuppressWarnings("rawtypes")
+    public OrderItem save(OrderItem orderItem) {
+        return repository.save(orderItem);
     }
 
-    public void deleteById(Long id) {
+    /**
+     * Hard delete is acceptable here
+     * (OrderItem is not a root aggregate)
+     */
+    public void deleteById(UUID id) {
         repository.deleteById(id);
     }
+
+    public @Nullable Object findAllActive() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'findAllActive'");
+    }
+
+    public void delete(UUID id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'delete'");
+    }
 }
+

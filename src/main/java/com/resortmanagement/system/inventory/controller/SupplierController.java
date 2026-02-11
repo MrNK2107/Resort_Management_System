@@ -1,33 +1,18 @@
-/*
-TODO: SupplierController.java
-Purpose:
- - CRUD for suppliers and search.
-Endpoints:
- - POST /api/v1/suppliers
- - GET /api/v1/suppliers/{id}
- - GET /api/v1/suppliers?name=
-File: inventory/controller/SupplierController.java
-*/
 package com.resortmanagement.system.inventory.controller;
 
-
 import java.util.List;
+import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.resortmanagement.system.inventory.entity.Supplier;
 import com.resortmanagement.system.inventory.service.SupplierService;
 
 @RestController
-@RequestMapping("/api/inventory/suppliers")
+@RequestMapping("/api/v1/inventory/suppliers")
 public class SupplierController {
 
     private final SupplierService service;
@@ -36,32 +21,55 @@ public class SupplierController {
         this.service = supplierService;
     }
 
+    /**
+     * Get all suppliers
+     */
     @GetMapping
-    public ResponseEntity<List<Supplier>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(this.service.findAll());
+    public ResponseEntity<List<com.resortmanagement.system.inventory.dto.response.SupplierResponse>> getAll(
+            @RequestParam(required = false, defaultValue = "false") boolean activeOnly) {
+        if (activeOnly) {
+             return ResponseEntity.ok(service.findAllActive());
+        }
+        return ResponseEntity.ok(service.findAll());
     }
 
+    /**
+     * Get supplier by ID
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<Supplier> getById(@PathVariable Long id) {
-        return this.service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<com.resortmanagement.system.inventory.dto.response.SupplierResponse> getById(@PathVariable UUID id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Create supplier
+     */
     @PostMapping
-    public ResponseEntity<Supplier> create(@RequestBody Supplier entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(this.service.save(entity));
+    public ResponseEntity<com.resortmanagement.system.inventory.dto.response.SupplierResponse> create(
+            @jakarta.validation.Valid @RequestBody com.resortmanagement.system.inventory.dto.request.SupplierRequest request) {
+        com.resortmanagement.system.inventory.dto.response.SupplierResponse saved = service.create(request);
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
+    /**
+     * Update supplier
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<Supplier> update(@PathVariable Long id, @RequestBody Supplier entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(this.service.save(entity));
+    public ResponseEntity<com.resortmanagement.system.inventory.dto.response.SupplierResponse> update(
+            @PathVariable UUID id,
+            @jakarta.validation.Valid @RequestBody com.resortmanagement.system.inventory.dto.request.SupplierRequest request) {
+        return ResponseEntity.ok(service.update(id, request));
     }
 
+    /**
+     * Delete supplier
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        this.service.deleteById(id);
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
+

@@ -1,37 +1,22 @@
-/*
-TODO: OrderController.java
-Purpose:
- - POS endpoints for creating Orders linked to guest/reservation tables.
-Endpoints:
- - POST /api/v1/orders -> create order (guestId, reservationId, items)
- - GET /api/v1/orders/{id}
- - POST /api/v1/orders/{id}/confirm -> confirm and deduct inventory (transactional)
-Responsibilities:
- - Validate item availability and inventory before confirming.
- - Use OrderService for transaction (deduct inventory atomically; rollback on failure).
- - Assign Order to folio for billing.
-
-File: fnb/controller/OrderController.java
-*/
 package com.resortmanagement.system.fnb.controller;
 
 import java.util.List;
+import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.resortmanagement.system.fnb.entity.Order;
 import com.resortmanagement.system.fnb.service.OrderService;
 
 @RestController
-@RequestMapping("/api/fnb/orders")
+@RequestMapping("/api/v1/fnb/orders")
 public class OrderController {
 
     private final OrderService orderService;
@@ -40,32 +25,36 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+    /**
+     * Get all orders
+     */
     @GetMapping
-    public ResponseEntity<List<Order>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(this.orderService.findAll());
+    public ResponseEntity<List<com.resortmanagement.system.fnb.dto.response.OrderResponse>> getAll() {
+        return ResponseEntity.ok(orderService.findAll());
     }
 
+    /**
+     * Get order by ID
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getById(@PathVariable Long id) {
-        return this.orderService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<com.resortmanagement.system.fnb.dto.response.OrderResponse> getById(@PathVariable UUID id) {
+        return orderService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Create a new order (and deduct inventory if not simulated)
+     * For now, create does it all as per service logic.
+     */
     @PostMapping
-    public ResponseEntity<Order> create(@RequestBody Order entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(this.orderService.save(entity));
+    public ResponseEntity<com.resortmanagement.system.fnb.dto.response.OrderResponse> create(
+            @jakarta.validation.Valid @RequestBody com.resortmanagement.system.fnb.dto.request.OrderRequest request) {
+        com.resortmanagement.system.fnb.dto.response.OrderResponse saved = orderService.create(request);
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Order> update(@PathVariable Long id, @RequestBody Order entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(this.orderService.save(entity));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        this.orderService.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
+    // Delete method? Order cancellation logic is complex (revert inventory). 
+    // Not implemented in service yet. 
+    // I won't expose delete for now, or returns NotAllowed.
 }
