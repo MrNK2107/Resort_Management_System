@@ -1,46 +1,74 @@
-/*
-TODO: Marketing repository & services guidelines
-Services:
- - PackageService.bookPackage(reservationId, packageId) -> expand into reservation components (transactional)
- - PromotionService.validateAndApply(promoCode, reservation) -> return adjusted price or throw PromotionInvalidException
-File: marketing/repository/<File>.java, marketing/service/<File>.java
-*/
 package com.resortmanagement.system.marketing.service;
 
-import java.util.List;
+import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.resortmanagement.system.marketing.dto.loyaltymember.LoyaltyMemberRequest;
+import com.resortmanagement.system.marketing.dto.loyaltymember.LoyaltyMemberResponse;
 import com.resortmanagement.system.marketing.entity.LoyaltyMember;
+import com.resortmanagement.system.marketing.mapper.LoyaltyMemberMapper;
 import com.resortmanagement.system.marketing.repository.LoyaltyMemberRepository;
 
 @Service
+@Transactional
 public class LoyaltyMemberService {
 
     private final LoyaltyMemberRepository repository;
+    private final LoyaltyMemberMapper mapper;
 
-    public LoyaltyMemberService(LoyaltyMemberRepository repository) {
-        this.repository = repository;
+    public LoyaltyMemberService(LoyaltyMemberRepository loyaltyMemberRepository,
+            LoyaltyMemberMapper loyaltyMemberMapper) {
+        this.repository = loyaltyMemberRepository;
+        this.mapper = loyaltyMemberMapper;
     }
 
-    public List<LoyaltyMember> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    @Transactional(readOnly = true)
+    public Page<LoyaltyMemberResponse> findAll(Pageable pageable) {
+        return repository.findByDeletedFalse(pageable).map(mapper::toResponse);
     }
 
-    public Optional<LoyaltyMember> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
+    @Transactional(readOnly = true)
+    public Optional<LoyaltyMemberResponse> findById(UUID id) {
+        return repository.findByIdAndDeletedFalse(id).map(mapper::toResponse);
     }
 
-    public LoyaltyMember save(LoyaltyMember entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
+    public LoyaltyMemberResponse save(LoyaltyMemberRequest dto) {
+        if (dto.getGuestId() == null) {
+            throw new IllegalArgumentException("Guest ID is required");
+        }
+        if (dto.getTier() == null || dto.getTier().isEmpty()) {
+            throw new IllegalArgumentException("Tier is required");
+        }
+
+        LoyaltyMember loyaltyMember = mapper.toEntity(dto);
+        LoyaltyMember saved = repository.save(loyaltyMember);
+        return mapper.toResponse(saved);
     }
 
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+    public LoyaltyMemberResponse update(UUID id, LoyaltyMemberRequest dto) {
+        return repository.findByIdAndDeletedFalse(id)
+                .map(existing -> {
+                    mapper.updateEntity(existing, dto);
+                    return mapper.toResponse(repository.save(existing));
+                })
+                .orElseThrow(() -> new RuntimeException("LoyaltyMember not found with id " + id));
+    }
+
+    public void deleteById(UUID id) {
+        if (!repository.existsById(id)) {
+            throw new RuntimeException("LoyaltyMember not found with id " + id);
+        }
+        repository.softDeleteById(id, Instant.now());
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<LoyaltyMemberResponse> findByGuestId(UUID guestId) {
+        return repository.findByGuestIdAndDeletedFalse(guestId).map(mapper::toResponse);
     }
 }

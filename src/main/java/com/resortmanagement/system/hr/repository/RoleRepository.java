@@ -1,11 +1,16 @@
 package com.resortmanagement.system.hr.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.resortmanagement.system.common.repository.SoftDeleteRepository;
+import com.resortmanagement.system.hr.entity.Role;
 import org.springframework.stereotype.Repository;
 
-import com.resortmanagement.system.hr.entity.Role;
+import java.util.UUID;
 
 @Repository
-public interface RoleRepository extends JpaRepository<Role, Long> {
-    // TODO: add custom queries if needed
+public interface RoleRepository extends SoftDeleteRepository<Role, UUID> {
+    boolean existsByName(String name);
+
+    java.util.Optional<Role> findByName(String name);
+
+    org.springframework.data.domain.Page<Role> findByDeletedFalse(org.springframework.data.domain.Pageable pageable);
 }

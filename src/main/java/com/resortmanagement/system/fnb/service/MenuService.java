@@ -1,39 +1,61 @@
 package com.resortmanagement.system.fnb.service;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Service;
-
 import com.resortmanagement.system.fnb.entity.Menu;
 import com.resortmanagement.system.fnb.repository.MenuRepository;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class MenuService {
 
     private final MenuRepository repository;
+    private final com.resortmanagement.system.fnb.mapper.MenuMapper mapper;
 
-    public MenuService(MenuRepository repository) {
+    public MenuService(MenuRepository repository, com.resortmanagement.system.fnb.mapper.MenuMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
-    public List<Menu> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    // Fetch only active (not soft-deleted) menus
+    public List<com.resortmanagement.system.fnb.dto.response.MenuResponse> findAllActive() {
+        return repository.findByDeletedFalse().stream()
+                .map(mapper::toResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 
-    public Optional<Menu> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
+    public List<com.resortmanagement.system.fnb.dto.response.MenuResponse> findAll() {
+        return repository.findAll().stream()
+                .map(mapper::toResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 
-    public Menu save(Menu entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
+    public Optional<com.resortmanagement.system.fnb.dto.response.MenuResponse> findById(UUID id) {
+        return repository.findById(id)
+                .filter(menu -> !menu.isDeleted())
+                .map(mapper::toResponse);
     }
 
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+    public com.resortmanagement.system.fnb.dto.response.MenuResponse create(com.resortmanagement.system.fnb.dto.request.MenuRequest request) {
+        Menu menu = mapper.toEntity(request);
+        return mapper.toResponse(repository.save(menu));
+    }
+
+    public com.resortmanagement.system.fnb.dto.response.MenuResponse update(UUID id, com.resortmanagement.system.fnb.dto.request.MenuRequest request) {
+        Menu menu = repository.findById(id)
+                .filter(m -> !m.isDeleted())
+                .orElseThrow(() -> new RuntimeException("Menu not found or deleted: " + id));
+        mapper.updateEntity(menu, request);
+        return mapper.toResponse(repository.save(menu));
+    }
+
+    // Soft delete menu
+    @Transactional
+    public void delete(UUID id) {
+        repository.softDeleteById(id);
     }
 }

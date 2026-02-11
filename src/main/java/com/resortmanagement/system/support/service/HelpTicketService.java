@@ -1,11 +1,16 @@
 package com.resortmanagement.system.support.service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.resortmanagement.system.support.dto.request.HelpTicketCreateRequest;
+import com.resortmanagement.system.support.dto.request.HelpTicketUpdateRequest;
+import com.resortmanagement.system.support.dto.response.HelpTicketResponse;
 import com.resortmanagement.system.support.entity.HelpTicket;
+import com.resortmanagement.system.support.enums.TicketStatus;
+import com.resortmanagement.system.support.mapper.HelpTicketMapper;
 import com.resortmanagement.system.support.repository.HelpTicketRepository;
 
 @Service
@@ -13,27 +18,64 @@ public class HelpTicketService {
 
     private final HelpTicketRepository repository;
 
-    public HelpTicketService(HelpTicketRepository repository) {
+    private final HelpTicketMapper mapper;
+
+    public HelpTicketService(HelpTicketRepository repository,
+                         HelpTicketMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
+    }
+
+    public HelpTicketService(HelpTicketMapper mapper, HelpTicketRepository repository) {
+        this.mapper = mapper;
         this.repository = repository;
     }
 
-    public List<HelpTicket> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    public HelpTicketResponse create(HelpTicketCreateRequest request) {
+
+        HelpTicket entity = new HelpTicket();
+
+        entity.setCategory(request.getCategory());
+        entity.setDescription(request.getDescription());
+        entity.setPriority(request.getPriority());
+        entity.setStatus(TicketStatus.OPEN);
+
+        // ✅ ticket number generation
+        entity.setTicketNumber("TKT-" + System.currentTimeMillis());
+
+        return mapper.toResponse(repository.save(entity));
     }
 
-    public Optional<HelpTicket> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
+    public List<HelpTicketResponse> getAll() {
+        return repository.findByDeletedFalse()
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 
-    public HelpTicket save(HelpTicket entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
+    public HelpTicketResponse update(UUID id, HelpTicketUpdateRequest request) {
+
+        HelpTicket entity = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+
+        if (request.getPriority() != null)
+            entity.setPriority(request.getPriority());
+
+        if (request.getStatus() != null)
+            entity.setStatus(request.getStatus());
+
+        if (request.getAssignedTo() != null)
+            entity.setAssignedTo(request.getAssignedTo());
+
+        return mapper.toResponse(repository.save(entity));
     }
 
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+    public void delete(UUID id) {
+
+        HelpTicket entity = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+
+        entity.setDeleted(true);
+        repository.save(entity);
     }
 }

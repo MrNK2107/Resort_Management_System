@@ -1,20 +1,3 @@
-/*
-Purpose:
- - Central Guest entity used across domains (booking, fnb, billing).
-Fields:
- - id: UUID
- - firstName, lastName, email, phone, address, dob
- - loyaltyId: String (nullable)
- - status: enum (ACTIVE, INACTIVE)
- - extends Auditable (track who created/modified guest)
- - soft-delete optional for GDPR (see policy)
-Guidelines:
- - Validation annotations (email @Email)
- - Keep sensitive data encryption in mind if needed (passport numbers etc).
- - Provide mapping to Guest DTOs for external API.
-File: common/Guest/Guest.java
-*/
-
 package com.resortmanagement.system.common.guest;
 
 import java.time.LocalDate;
@@ -30,18 +13,24 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "guest")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Guest extends AuditableSoftDeletable {
 
     @Id
     @UuidGenerator
-    @Column(name = "guest_id",columnDefinition = "VARCHAR(36)", updatable = false, nullable = false)
+    @Column(name = "guest_id", columnDefinition = "VARCHAR(36)", updatable = false, nullable = false)
     private UUID id;
 
     @NotBlank

@@ -1,11 +1,14 @@
 package com.resortmanagement.system.room.service;
 
 import java.util.List;
-import java.util.Optional;
-
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 
+import com.resortmanagement.system.room.dto.request.RoomTypeCreateRequest;
+import com.resortmanagement.system.room.dto.request.RoomTypeUpdateRequest;
+import com.resortmanagement.system.room.dto.response.RoomTypeResponse;
 import com.resortmanagement.system.room.entity.RoomType;
+import com.resortmanagement.system.room.mapper.RoomTypeMapper;
 import com.resortmanagement.system.room.repository.RoomTypeRepository;
 
 @Service
@@ -17,23 +20,37 @@ public class RoomTypeService {
         this.repository = repository;
     }
 
-    public List<RoomType> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    public RoomTypeResponse create(RoomTypeCreateRequest request) {
+        RoomType entity = RoomTypeMapper.toEntity(request);
+        RoomType saved = repository.save(entity);
+        return RoomTypeMapper.toResponse(saved);
     }
 
-    public Optional<RoomType> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
+    public List<RoomTypeResponse> getAll() {
+        return repository.findByDeletedFalse()
+                .stream()
+                .map(RoomTypeMapper::toResponse)
+                .toList();
     }
 
-    public RoomType save(RoomType entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
+    public RoomTypeResponse getById(UUID id) {
+        RoomType entity = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("RoomType not found"));
+        return RoomTypeMapper.toResponse(entity);
     }
 
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+    public RoomTypeResponse update(UUID id, RoomTypeUpdateRequest request) {
+        RoomType entity = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("RoomType not found"));
+        RoomTypeMapper.updateEntity(request, entity);
+        RoomType saved = repository.save(entity);
+        return RoomTypeMapper.toResponse(saved);
+    }
+
+    public void delete(UUID id) {
+        RoomType entity = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("RoomType not found"));
+        entity.setDeleted(true);
+        repository.save(entity);
     }
 }
