@@ -1,6 +1,5 @@
 package com.resortmanagement.system.booking.service;
 
-import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -27,8 +26,9 @@ public class ReservationRoomAssignmentService {
     private final ReservationRepository reservationRepository;
 
     public ReservationRoomAssignmentResponse assignRoom(
-            UUID reservationId,
-            ReservationRoomAssignmentRequest request) {
+        UUID reservationId,
+        ReservationRoomAssignmentRequest request
+    ) {
 
         Reservation reservation = reservationRepository.findByIdAndDeletedFalse(reservationId)
             .orElseThrow(() -> new ApplicationException("Reservation not found"));
@@ -42,7 +42,7 @@ public class ReservationRoomAssignmentService {
     }
 
     public void unassignRoom(UUID assignmentId) {
-        ReservationRoomAssignment assignment = repository.findById(assignmentId)
+        ReservationRoomAssignment assignment = repository.findByIdAndDeletedFalse(assignmentId)
             .orElseThrow(() -> new ApplicationException("Room assignment not found"));
         assignment.getRoomId().setStatus(RoomStatus.AVAILABLE);
         repository.save(assignment);

@@ -17,7 +17,7 @@ public class CommunicationResponse {
 
     private UUID guestId;
 
-    private Long reservationId;
+    private UUID reservationId;
 
     private CommunicationType type;
 

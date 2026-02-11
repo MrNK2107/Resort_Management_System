@@ -78,7 +78,7 @@ public class Room extends AuditableSoftDeletable {
     private List<MaintenanceRequest> maintenanceRequests = new ArrayList<>();
 
     @OneToMany(mappedBy = "room")
-private List<HousekeepingTask> housekeepingTasks = new ArrayList<>();
+    private List<HousekeepingTask> housekeepingTasks = new ArrayList<>();
 
 
 }

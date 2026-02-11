@@ -1,4 +1,4 @@
-package com.resortmanagement.system.fnb.entity;
+package com.resortmanagement.system.common.enums;
 
 public enum ActivityEventStatus {
     SCHEDULED,

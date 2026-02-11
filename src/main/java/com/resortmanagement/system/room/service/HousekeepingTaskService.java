@@ -44,7 +44,7 @@ public class HousekeepingTaskService {
         task.setNotes(req.getNotes());
 
         if(req.getStaffId() != null) {
-            Employee emp = empRepo.findById(req.getStaffId())
+            Employee emp = empRepo.findByIdAndDeletedFalse(req.getStaffId())
                     .orElseThrow(() -> new RuntimeException("Employee not found"));
             task.setStaff(emp);
         }

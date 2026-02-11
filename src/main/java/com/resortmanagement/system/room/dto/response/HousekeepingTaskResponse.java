@@ -15,7 +15,7 @@ public class HousekeepingTaskResponse {
 
     private UUID id;
     private UUID roomId;
-    private Long staffId;
+    private UUID staffId;
     private LocalDateTime scheduledAt;
     private HousekeepingPriority priority;
     private HousekeepingStatus status;

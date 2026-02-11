@@ -15,7 +15,7 @@ public class CommunicationCreateRequest {
 
     private UUID guestId;
 
-    private Long reservationId;
+    private UUID reservationId;
 
     @NotNull
     private CommunicationType type;

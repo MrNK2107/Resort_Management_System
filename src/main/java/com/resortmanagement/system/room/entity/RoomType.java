@@ -37,7 +37,10 @@ public class RoomType extends AuditableSoftDeletable {
 
     @Column(name = "max_occupancy")
     private Integer maxOccupancy;
-
+    
+    @Column(name = "total_keys")
+    private Integer totalKeys;
+    
     @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY)
     private List<Room> rooms = new ArrayList<>();
 }

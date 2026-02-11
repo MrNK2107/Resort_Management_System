@@ -17,7 +17,7 @@ public class HousekeepingTaskCreateRequest {
     @NotNull
     private UUID roomId;
 
-    private Long staffId;
+    private UUID staffId;
 
     @NotNull
     private LocalDateTime scheduledAt;

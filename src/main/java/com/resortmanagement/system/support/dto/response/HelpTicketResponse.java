@@ -26,4 +26,6 @@ public class HelpTicketResponse {
     private UUID reservationId;
 
     private LocalDateTime createdAt;
+
+    private UUID assignedTo;
 }

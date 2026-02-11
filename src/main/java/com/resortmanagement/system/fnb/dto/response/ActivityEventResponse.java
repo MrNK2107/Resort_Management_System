@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.resortmanagement.system.fnb.entity.ActivityEventStatus;
+import com.resortmanagement.system.common.enums.ActivityEventStatus;
 
 // import lombok.Data;
 

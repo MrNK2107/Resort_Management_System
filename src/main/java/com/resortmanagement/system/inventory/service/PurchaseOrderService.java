@@ -1,10 +1,12 @@
 package com.resortmanagement.system.inventory.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.resortmanagement.system.inventory.entity.PurchaseOrder;
 import com.resortmanagement.system.inventory.repository.PurchaseOrderRepository;
@@ -56,7 +58,7 @@ public class PurchaseOrderService {
     
     // Actually, to properly implement `create`, I need to save lines.
     
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public com.resortmanagement.system.inventory.dto.response.PurchaseOrderResponse create(com.resortmanagement.system.inventory.dto.request.PurchaseOrderRequest request) {
         com.resortmanagement.system.inventory.entity.Supplier supplier = supplierRepository.findById(request.getSupplierId())
                 .orElseThrow(() -> new RuntimeException("Supplier not found"));
@@ -96,7 +98,7 @@ public class PurchaseOrderService {
          });
     }
 
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void receive(UUID id) {
         PurchaseOrder po = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("PO not found"));
