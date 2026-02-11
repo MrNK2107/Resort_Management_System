@@ -1,69 +1,77 @@
-/*
-TODO: MenuItemController.java
-Purpose:
- - Manage menu items (create, update availability).
-Endpoints:
- - POST /api/v1/menus/{menuId}/items
- - GET /api/v1/menu-items/{id}
- - PATCH /api/v1/menu-items/{id}/availability
-Responsibilities:
- - On create/update, validate price, ingredients linking, and inventory units.
-
-File: fnb/controller/MenuItemController.java
-*/
 package com.resortmanagement.system.fnb.controller;
 
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.resortmanagement.system.fnb.entity.MenuItem;
-import com.resortmanagement.system.fnb.service.MenuItemService;
+import com.resortmanagement.system.fnb.entity.MenuItemIngredient;
+import com.resortmanagement.system.fnb.service.MenuItemIngredientService;
+
+import org.jspecify.annotations.Nullable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+import javax.swing.plaf.MenuItemUI;
 
 @RestController
-@RequestMapping("/api/fnb/menuitems")
+@RequestMapping("/api/v1/fnb/menu-items")
 public class MenuItemController {
 
-    private final MenuItemService menuItemService;
+    private final com.resortmanagement.system.fnb.service.MenuItemService service;
 
-    public MenuItemController(MenuItemService menuItemService) {
-        this.menuItemService = menuItemService;
+    public MenuItemController(com.resortmanagement.system.fnb.service.MenuItemService service) {
+        this.service = service;
     }
 
+    /**
+     * Get all active menu items
+     */
     @GetMapping
-    public ResponseEntity<List<MenuItem>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(this.menuItemService.findAll());
+    public ResponseEntity<List<com.resortmanagement.system.fnb.dto.response.MenuItemResponse>> getAll(
+            @org.springframework.web.bind.annotation.RequestParam(required = false, defaultValue = "false") boolean activeOnly) {
+        if (activeOnly) {
+            return ResponseEntity.ok(service.findAllActive());
+        }
+        return ResponseEntity.ok(service.findAll());
     }
 
+    /**
+     * Get menu item by ID
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<MenuItem> getById(@PathVariable Long id) {
-        return this.menuItemService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<com.resortmanagement.system.fnb.dto.response.MenuItemResponse> getById(@PathVariable UUID id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Create a menu item
+     */
     @PostMapping
-    public ResponseEntity<MenuItem> create(@RequestBody MenuItem entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(this.menuItemService.save(entity));
+    public ResponseEntity<com.resortmanagement.system.fnb.dto.response.MenuItemResponse> create(
+            @jakarta.validation.Valid @RequestBody com.resortmanagement.system.fnb.dto.request.MenuItemRequest request) {
+        com.resortmanagement.system.fnb.dto.response.MenuItemResponse saved = service.create(request);
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
-
+    
+    /**
+     * Update a menu item
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<MenuItem> update(@PathVariable Long id, @RequestBody MenuItem entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(this.menuItemService.save(entity));
+    public ResponseEntity<com.resortmanagement.system.fnb.dto.response.MenuItemResponse> update(
+            @PathVariable UUID id,
+            @jakarta.validation.Valid @RequestBody com.resortmanagement.system.fnb.dto.request.MenuItemRequest request) {
+        return ResponseEntity.ok(service.update(id, request));
     }
 
+    /**
+     * Soft delete a menu item
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        this.menuItemService.deleteById(id);
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

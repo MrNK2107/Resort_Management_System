@@ -1,12 +1,13 @@
 package com.resortmanagement.system.fnb.service;
 
-import java.util.List;
-import java.util.Optional;
+import com.resortmanagement.system.fnb.entity.MenuItemIngredient;
+import com.resortmanagement.system.fnb.repository.MenuItemIngredientRepository;
 
 import org.springframework.stereotype.Service;
 
-import com.resortmanagement.system.fnb.entity.MenuItemIngredient;
-import com.resortmanagement.system.fnb.repository.MenuItemIngredientRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class MenuItemIngredientService {
@@ -18,22 +19,22 @@ public class MenuItemIngredientService {
     }
 
     public List<MenuItemIngredient> findAll() {
-        // TODO: add pagination and filtering
         return repository.findAll();
     }
 
-    public Optional<MenuItemIngredient> findById(Long id) {
-        // TODO: add caching and error handling
+    public Optional<MenuItemIngredient> findById(UUID id) {
         return repository.findById(id);
     }
 
+    public List<MenuItemIngredient> findByMenuItem(UUID menuItemId) {
+        return repository.findByMenuItemId(menuItemId);
+    }
+
     public MenuItemIngredient save(MenuItemIngredient entity) {
-        // TODO: add validation and business rules
         return repository.save(entity);
     }
 
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
+    public void delete(UUID id) {
         repository.deleteById(id);
     }
 }

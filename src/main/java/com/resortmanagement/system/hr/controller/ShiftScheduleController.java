@@ -1,69 +1,72 @@
-/*
-TODO: ShiftScheduleController.java
-Purpose:
- - Manage shift assignments for staff across departments.
-Endpoints:
- - POST /api/v1/shifts -> create shift assignment
- - GET /api/v1/employees/{id}/shifts
-Responsibilities:
- - Validate overlapping shifts and employee availability.
- - Use ShiftScheduleService for conflict detection and persistence.
-
-File: hr/controller/ShiftScheduleController.java
-*/
 package com.resortmanagement.system.hr.controller;
 
-import java.util.List;
+import java.time.Instant;
+import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.resortmanagement.system.hr.entity.ShiftSchedule;
+import com.resortmanagement.system.hr.dto.shiftschedule.ShiftScheduleRequest;
+import com.resortmanagement.system.hr.dto.shiftschedule.ShiftScheduleResponse;
 import com.resortmanagement.system.hr.service.ShiftScheduleService;
 
 @RestController
-@RequestMapping("/api/hr/shiftschedules")
+@RequestMapping("/api/hr/shift-schedules")
 public class ShiftScheduleController {
 
-    private final ShiftScheduleService shiftScheduleService;
+    private final ShiftScheduleService service;
 
     public ShiftScheduleController(ShiftScheduleService shiftScheduleService) {
-        this.shiftScheduleService = shiftScheduleService;
+        this.service = shiftScheduleService;
     }
 
     @GetMapping
-    public ResponseEntity<List<ShiftSchedule>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(this.shiftScheduleService.findAll());
+    public ResponseEntity<Page<ShiftScheduleResponse>> getAllShiftSchedules(Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ShiftSchedule> getById(@PathVariable Long id) {
-        return this.shiftScheduleService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ShiftScheduleResponse> getShiftScheduleById(@PathVariable UUID id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<ShiftSchedule> create(@RequestBody ShiftSchedule entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(this.shiftScheduleService.save(entity));
+    public ResponseEntity<ShiftScheduleResponse> createShiftSchedule(@RequestBody ShiftScheduleRequest request) {
+        ShiftScheduleResponse created = service.save(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ShiftSchedule> update(@PathVariable Long id, @RequestBody ShiftSchedule entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(this.shiftScheduleService.save(entity));
+    public ResponseEntity<ShiftScheduleResponse> updateShiftSchedule(
+            @PathVariable UUID id,
+            @RequestBody ShiftScheduleRequest request) {
+        ShiftScheduleResponse updated = service.update(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        this.shiftScheduleService.deleteById(id);
+    public ResponseEntity<Void> deleteShiftSchedule(@PathVariable UUID id) {
+        service.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/employee/{employeeId}")
+    public ResponseEntity<Page<ShiftScheduleResponse>> getShiftSchedulesByEmployee(
+            @PathVariable UUID employeeId,
+            Pageable pageable) {
+        return ResponseEntity.ok(service.findByEmployeeId(employeeId, pageable));
+    }
+
+    @GetMapping("/range")
+    public ResponseEntity<Page<ShiftScheduleResponse>> getShiftSchedulesByTimeRange(
+            @RequestParam Instant startTime,
+            @RequestParam Instant endTime,
+            Pageable pageable) {
+        return ResponseEntity.ok(service.findByTimeRange(startTime, endTime, pageable));
     }
 }

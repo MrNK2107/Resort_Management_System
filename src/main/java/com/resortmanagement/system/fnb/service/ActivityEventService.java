@@ -1,55 +1,57 @@
-/*
-TODO: FNB repository & service guidelines
-Repositories:
- - extend JpaRepository
- - provide queries for active items, menu lookups
-
-Services:
- - OrderService.confirmOrder must:
-    * be @Transactional
-    * check ingredient availability
-    * perform atomic decrement (UPDATE ... WHERE quantity_on_hand >= :qty)
-    * insert InventoryTransaction rows with sourceType=ORDER and sourceId=order.id
- - MenuItemService to manage menu items and update recipe.
-
-File: fnb/repository/<File>.java, fnb/service/<File>.java
-*/
 package com.resortmanagement.system.fnb.service;
-
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Service;
 
 import com.resortmanagement.system.fnb.entity.ActivityEvent;
 import com.resortmanagement.system.fnb.repository.ActivityEventRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ActivityEventService {
 
     private final ActivityEventRepository repository;
+    private final com.resortmanagement.system.fnb.mapper.ActivityEventMapper mapper;
 
-    public ActivityEventService(ActivityEventRepository repository) {
+    public ActivityEventService(ActivityEventRepository repository, com.resortmanagement.system.fnb.mapper.ActivityEventMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
-    public List<ActivityEvent> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    public List<com.resortmanagement.system.fnb.dto.response.ActivityEventResponse> findAllActive() {
+        return repository.findAll().stream()
+                .map(mapper::toResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
+    
+    public List<com.resortmanagement.system.fnb.dto.response.ActivityEventResponse> findAll() {
+        return repository.findAll().stream()
+                .map(mapper::toResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 
-    public Optional<ActivityEvent> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
+    public Optional<com.resortmanagement.system.fnb.dto.response.ActivityEventResponse> findById(UUID id) {
+        return repository.findById(id).map(mapper::toResponse);
     }
 
-    public ActivityEvent save(ActivityEvent entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
+    public com.resortmanagement.system.fnb.dto.response.ActivityEventResponse create(com.resortmanagement.system.fnb.dto.request.ActivityEventRequest request) {
+        ActivityEvent entity = mapper.toEntity(request);
+        return mapper.toResponse(repository.save(entity));
     }
 
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+    public com.resortmanagement.system.fnb.dto.response.ActivityEventResponse update(UUID id, com.resortmanagement.system.fnb.dto.request.ActivityEventRequest request) {
+        ActivityEvent entity = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Activity event not found: " + id));
+        mapper.updateEntity(entity, request);
+        return mapper.toResponse(repository.save(entity));
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        // Assuming soft delete if supported, but repo method was softDeleteById in view?
+        // Checking view_file output from step 254: repository.softDeleteById(id);
+        repository.softDeleteById(id);
     }
 }

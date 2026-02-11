@@ -1,36 +1,19 @@
-/*
-TODO: LoyaltyMemberController.java
-Purpose:
- - Manage loyalty program members and points.
-Endpoints:
- - POST /api/v1/loyalty -> enroll member
- - GET /api/v1/loyalty/{id}
- - POST /api/v1/loyalty/{id}/adjust-points
-Responsibilities:
- - Keep points arithmetic in service; maintain transactional integrity.
- - Protect endpoints for admin when adjusting points.
-File: marketing/controller/LoyaltyMemberController.java
-*/
 package com.resortmanagement.system.marketing.controller;
 
+import java.util.UUID;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.resortmanagement.system.marketing.entity.LoyaltyMember;
+import com.resortmanagement.system.marketing.dto.loyaltymember.LoyaltyMemberRequest;
+import com.resortmanagement.system.marketing.dto.loyaltymember.LoyaltyMemberResponse;
 import com.resortmanagement.system.marketing.service.LoyaltyMemberService;
 
 @RestController
-@RequestMapping("/api/marketing/loyaltymembers")
+@RequestMapping("/api/marketing/loyalty-members")
 public class LoyaltyMemberController {
 
     private final LoyaltyMemberService service;
@@ -40,31 +23,41 @@ public class LoyaltyMemberController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LoyaltyMember>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<Page<LoyaltyMemberResponse>> getAllLoyaltyMembers(Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LoyaltyMember> getById(@PathVariable Long id) {
-        return service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<LoyaltyMemberResponse> getLoyaltyMemberById(@PathVariable UUID id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<LoyaltyMember> create(@RequestBody LoyaltyMember entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(service.save(entity));
+    public ResponseEntity<LoyaltyMemberResponse> createLoyaltyMember(@RequestBody LoyaltyMemberRequest request) {
+        LoyaltyMemberResponse created = service.save(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<LoyaltyMember> update(@PathVariable Long id, @RequestBody LoyaltyMember entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(service.save(entity));
+    public ResponseEntity<LoyaltyMemberResponse> updateLoyaltyMember(
+            @PathVariable UUID id,
+            @RequestBody LoyaltyMemberRequest request) {
+        LoyaltyMemberResponse updated = service.update(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteLoyaltyMember(@PathVariable UUID id) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/guest/{guestId}")
+    public ResponseEntity<LoyaltyMemberResponse> getLoyaltyMemberByGuestId(@PathVariable UUID guestId) {
+        return service.findByGuestId(guestId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

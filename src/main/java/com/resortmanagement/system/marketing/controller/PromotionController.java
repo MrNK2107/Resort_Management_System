@@ -1,30 +1,15 @@
-/*
-TODO: PromotionController.java
-Purpose:
- - CRUD for promotions/coupons.
-Endpoints:
- - POST /api/v1/promotions
- - GET /api/v1/promotions?code=...
-Responsibilities:
- - Apply promotion rules in pricing service at booking/invoice computation time.
-File: marketing/controller/PromotionController.java
-*/
 package com.resortmanagement.system.marketing.controller;
 
+import java.util.UUID;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.resortmanagement.system.marketing.entity.Promotion;
+import com.resortmanagement.system.marketing.dto.promotion.PromotionRequest;
+import com.resortmanagement.system.marketing.dto.promotion.PromotionResponse;
 import com.resortmanagement.system.marketing.service.PromotionService;
 
 @RestController
@@ -38,31 +23,34 @@ public class PromotionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Promotion>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(this.service.findAll());
+    public ResponseEntity<Page<PromotionResponse>> getAllPromotions(Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Promotion> getById(@PathVariable Long id) {
-        return this.service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<PromotionResponse> getPromotionById(@PathVariable UUID id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Promotion> create(@RequestBody Promotion entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(this.service.save(entity));
+    public ResponseEntity<PromotionResponse> createPromotion(@RequestBody PromotionRequest request) {
+        PromotionResponse created = service.save(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Promotion> update(@PathVariable Long id, @RequestBody Promotion entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(this.service.save(entity));
+    public ResponseEntity<PromotionResponse> updatePromotion(
+            @PathVariable UUID id,
+            @RequestBody PromotionRequest request) {
+        PromotionResponse updated = service.update(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        this.service.deleteById(id);
+    public ResponseEntity<Void> deletePromotion(@PathVariable UUID id) {
+        service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

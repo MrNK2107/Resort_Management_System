@@ -1,71 +1,72 @@
-/*
-TODO: ActivityEventController.java
-Purpose:
- - CRUD and scheduling endpoints for activities (yoga, diving, shows).
-Endpoints:
- - POST /api/v1/activities -> create scheduled event
- - GET /api/v1/activities?date=...
- - POST /api/v1/activities/{id}/register -> assign guest(s)
-Responsibilities:
- - Validate capacity, check instructor availability.
- - Use ActivityEventService for transactional scheduling.
- - Map to DTOs.
-
-File: fnb/controller/ActivityEventController.java
-*/
 package com.resortmanagement.system.fnb.controller;
-
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.resortmanagement.system.fnb.entity.ActivityEvent;
 import com.resortmanagement.system.fnb.service.ActivityEventService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/fnb/activityevents")
+@RequestMapping("/api/v1/fnb/activity-events")
 public class ActivityEventController {
 
-    private final ActivityEventService activityEventService;
+    private final ActivityEventService service;
 
-    public ActivityEventController(ActivityEventService activityEventService) {
-        this.activityEventService = activityEventService;
+    public ActivityEventController(ActivityEventService service) {
+        this.service = service;
     }
 
+    /**
+     * Get all active activity events
+     */
     @GetMapping
-    public ResponseEntity<List<ActivityEvent>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(this.activityEventService.findAll());
+    public ResponseEntity<List<com.resortmanagement.system.fnb.dto.response.ActivityEventResponse>> getAll(
+            @org.springframework.web.bind.annotation.RequestParam(required = false, defaultValue = "false") boolean activeOnly) {
+        if (activeOnly) {
+            return ResponseEntity.ok(service.findAllActive());
+        }
+        return ResponseEntity.ok(service.findAll());
     }
 
+    /**
+     * Get activity event by ID
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<ActivityEvent> getById(@PathVariable Long id) {
-        return this.activityEventService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<com.resortmanagement.system.fnb.dto.response.ActivityEventResponse> getById(@PathVariable UUID id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Create an activity event
+     */
     @PostMapping
-    public ResponseEntity<ActivityEvent> create(@RequestBody ActivityEvent entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(this.activityEventService.save(entity));
+    public ResponseEntity<com.resortmanagement.system.fnb.dto.response.ActivityEventResponse> create(
+            @jakarta.validation.Valid @RequestBody com.resortmanagement.system.fnb.dto.request.ActivityEventRequest request) {
+        com.resortmanagement.system.fnb.dto.response.ActivityEventResponse saved = service.create(request);
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
-
+    
+    /**
+     * Update an activity event
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<ActivityEvent> update(@PathVariable Long id, @RequestBody ActivityEvent entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(this.activityEventService.save(entity));
+    public ResponseEntity<com.resortmanagement.system.fnb.dto.response.ActivityEventResponse> update(
+            @PathVariable UUID id,
+            @jakarta.validation.Valid @RequestBody com.resortmanagement.system.fnb.dto.request.ActivityEventRequest request) {
+        return ResponseEntity.ok(service.update(id, request));
     }
 
+    /**
+     * Soft delete an activity event
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        this.activityEventService.deleteById(id);
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

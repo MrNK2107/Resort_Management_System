@@ -1,35 +1,16 @@
-/*
-TODO: MenuItemIngredientController.java
-Purpose:
- - Admin endpoints to configure recipe mapping between menu items and inventory items.
-Endpoints:
- - POST /api/v1/menu-items/{id}/ingredients
-Responsibilities:
- - Manage conversions (store quantity in inventory base unit).
- - Use MenuItemIngredientService to update mapping and run inventory impact checks if required.
-
-File: fnb/controller/MenuItemIngredientController.java
-*/
-
 package com.resortmanagement.system.fnb.controller;
-
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.resortmanagement.system.fnb.entity.MenuItemIngredient;
 import com.resortmanagement.system.fnb.service.MenuItemIngredientService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/fnb/menuitemingredients")
+@RequestMapping("/api/fnb/menu-item-ingredients")
 public class MenuItemIngredientController {
 
     private final MenuItemIngredientService service;
@@ -38,32 +19,62 @@ public class MenuItemIngredientController {
         this.service = service;
     }
 
+    /**
+     * Get all menu item ingredients (recipes)
+     */
     @GetMapping
     public ResponseEntity<List<MenuItemIngredient>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(this.service.findAll());
+        return ResponseEntity.ok(service.findAll());
     }
 
+    /**
+     * Get menu item ingredient by ID
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<MenuItemIngredient> getById(@PathVariable Long id) {
-        return this.service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<MenuItemIngredient> getById(@PathVariable UUID id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Get all ingredients for a specific menu item
+     */
+    @GetMapping("/menu-item/{menuItemId}")
+    public ResponseEntity<List<MenuItemIngredient>> getByMenuItem(
+            @PathVariable UUID menuItemId) {
+        return ResponseEntity.ok(service.findByMenuItem(menuItemId));
+    }
+
+    /**
+     * Create a menu item ingredient (recipe mapping)
+     */
     @PostMapping
-    public ResponseEntity<MenuItemIngredient> create(@RequestBody MenuItemIngredient entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(this.service.save(entity));
+    public ResponseEntity<MenuItemIngredient> create(
+            @RequestBody MenuItemIngredient entity) {
+        MenuItemIngredient saved = service.save(entity);
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
+    /**
+     * Update a menu item ingredient
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<MenuItemIngredient> update(@PathVariable Long id, @RequestBody MenuItemIngredient entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(this.service.save(entity));
+    public ResponseEntity<MenuItemIngredient> update(
+            @PathVariable UUID id,
+            @RequestBody MenuItemIngredient entity) {
+
+        // ensure correct ID is used
+        entity.setId(id);
+        return ResponseEntity.ok(service.save(entity));
     }
 
+    /**
+     * Delete a menu item ingredient (hard delete allowed)
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        this.service.deleteById(id);
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

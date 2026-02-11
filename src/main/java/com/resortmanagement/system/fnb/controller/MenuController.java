@@ -14,6 +14,7 @@ package com.resortmanagement.system.fnb.controller;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +29,7 @@ import com.resortmanagement.system.fnb.entity.Menu;
 import com.resortmanagement.system.fnb.service.MenuService;
 
 @RestController
-@RequestMapping("/api/fnb/menus")
+@RequestMapping("/api/v1/fnb/menus")
 public class MenuController {
 
     private final MenuService menuService;
@@ -38,31 +39,35 @@ public class MenuController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Menu>> getAll() {
-        // TODO: add pagination and filtering params
+    public ResponseEntity<List<com.resortmanagement.system.fnb.dto.response.MenuResponse>> getAll(
+            @org.springframework.web.bind.annotation.RequestParam(required = false, defaultValue = "false") boolean activeOnly) {
+        if (activeOnly) {
+            return ResponseEntity.ok(this.menuService.findAllActive());
+        }
         return ResponseEntity.ok(this.menuService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Menu> getById(@PathVariable Long id) {
+    public ResponseEntity<com.resortmanagement.system.fnb.dto.response.MenuResponse> getById(@PathVariable java.util.UUID id) {
         return this.menuService.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Menu> create(@RequestBody Menu entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(this.menuService.save(entity));
+    public ResponseEntity<com.resortmanagement.system.fnb.dto.response.MenuResponse> create(
+            @jakarta.validation.Valid @RequestBody com.resortmanagement.system.fnb.dto.request.MenuRequest request) {
+        return ResponseEntity.ok(this.menuService.create(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Menu> update(@PathVariable Long id, @RequestBody Menu entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(this.menuService.save(entity));
+    public ResponseEntity<com.resortmanagement.system.fnb.dto.response.MenuResponse> update(
+            @PathVariable java.util.UUID id, 
+            @jakarta.validation.Valid @RequestBody com.resortmanagement.system.fnb.dto.request.MenuRequest request) {
+        return ResponseEntity.ok(this.menuService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        this.menuService.deleteById(id);
+    public ResponseEntity<Void> delete(@PathVariable java.util.UUID id) {
+        this.menuService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

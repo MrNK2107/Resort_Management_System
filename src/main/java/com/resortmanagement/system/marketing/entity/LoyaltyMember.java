@@ -1,21 +1,58 @@
-/*
-TODO: LoyaltyMember.java
-Purpose:
- - Track loyalty points and tier for guests.
-Fields:
- - id UUID
- - guestId UUID
- - tier String
- - pointsBalance BigDecimal (or long)
- - enrolledAt Instant
- - status enum (ACTIVE, SUSPENDED)
- - extends Auditable
-Notes:
- - Provide methods in service to add/redeem points (transactional).
-File: marketing/entity/LoyaltyMember.java
-*/
 package com.resortmanagement.system.marketing.entity;
 
-public class LoyaltyMember {
-    // TODO: fields, constructors, getters, setters
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.FetchType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
+
+import com.resortmanagement.system.common.audit.AuditableSoftDeletable;
+
+@Entity
+@Table(name = "loyalty_members")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class LoyaltyMember extends AuditableSoftDeletable {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(name = "guest_id", nullable = false, unique = true)
+    private UUID guestId;
+
+    @Column(nullable = false)
+    private String tier;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal pointsBalance;
+
+    @Column(nullable = false)
+    private Instant enrolledAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MemberStatus status;
+
+    public enum MemberStatus {
+        ACTIVE,
+        SUSPENDED,
+        INACTIVE
+    }
 }

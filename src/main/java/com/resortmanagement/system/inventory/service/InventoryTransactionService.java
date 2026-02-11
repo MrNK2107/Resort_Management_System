@@ -1,39 +1,96 @@
 package com.resortmanagement.system.inventory.service;
 
-import java.util.List;
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.resortmanagement.system.inventory.entity.InventoryItem;
 import com.resortmanagement.system.inventory.entity.InventoryTransaction;
+import com.resortmanagement.system.inventory.repository.InventoryItemRepository;
 import com.resortmanagement.system.inventory.repository.InventoryTransactionRepository;
+
+import tx.setSourc;
 
 @Service
 public class InventoryTransactionService {
 
-    private final InventoryTransactionRepository repository;
+    private final InventoryItemRepository itemRepository;
+    private final InventoryTransactionRepository transactionRepository;
+    private final com.resortmanagement.system.inventory.mapper.InventoryTransactionMapper mapper;
 
-    public InventoryTransactionService(InventoryTransactionRepository repository) {
-        this.repository = repository;
+    public InventoryTransactionService(
+            InventoryItemRepository itemRepository,
+            InventoryTransactionRepository transactionRepository,
+            com.resortmanagement.system.inventory.mapper.InventoryTransactionMapper mapper) {
+        this.itemRepository = itemRepository;
+        this.transactionRepository = transactionRepository;
+        this.mapper = mapper;
     }
 
-    public List<InventoryTransaction> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    /**
+     * Consume ingredients atomically (used for Orders)
+     */
+    @Transactional
+    public void consumeIngredients(
+            Map<UUID, BigDecimal> items,
+            com.resortmanagement.system.inventory.entity.InventorySourceType sourceType,
+            UUID sourceId) {
+
+        for (Map.Entry<UUID, BigDecimal> entry : items.entrySet()) {
+
+            UUID itemId = entry.getKey();
+            BigDecimal qtyRequired = entry.getValue();
+
+            int updated = itemRepository.consumeStock(itemId, qtyRequired);
+            if (updated == 0) {
+                throw new RuntimeException("Insufficient inventory for item: " + itemId);
+            }
+
+            InventoryItem item = itemRepository.findById(itemId)
+                    .orElseThrow(() -> new RuntimeException("Inventory item not found: " + itemId));
+
+            InventoryTransaction tx = new InventoryTransaction();
+            tx.setItem(item);
+            tx.setQtyChange(qtyRequired.negate());
+            tx.setSourceType(sourceType);
+            tx.setSourceId(sourceId);
+
+            transactionRepository.save(tx);
+        }
     }
 
-    public Optional<InventoryTransaction> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
+    /**
+     * Add stock (Purchase Order / Adjustment)
+     */
+    @Transactional
+    public void addStock(
+            UUID itemId,
+            BigDecimal qtyAdded,
+            com.resortmanagement.system.inventory.entity.InventorySourceType sourceType,
+            UUID sourceId) {
+
+        InventoryItem item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Inventory item not found: " + itemId));
+
+        item.setQuantityOnHand(item.getQuantityOnHand().add(qtyAdded));
+        itemRepository.save(item);
+
+        InventoryTransaction tx = new InventoryTransaction();
+        tx.setItem(item);
+        tx.setQtyChange(qtyAdded);
+        tx.setSourceType(sourceType);
+        tx.setSourceId(sourceId);
+
+        transactionRepository.save(tx);
     }
 
-    public InventoryTransaction save(InventoryTransaction entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
-    }
-
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+    public java.util.List<com.resortmanagement.system.inventory.dto.response.InventoryTransactionResponse> findAll() {
+        return transactionRepository.findAll().stream()
+                .map(mapper::toResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 }
