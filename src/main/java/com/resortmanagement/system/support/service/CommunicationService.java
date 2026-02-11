@@ -1,39 +1,81 @@
 package com.resortmanagement.system.support.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.resortmanagement.system.booking.repository.ReservationRepository;
+import com.resortmanagement.system.common.guest.GuestRepository;
+import com.resortmanagement.system.support.dto.request.CommunicationCreateRequest;
+import com.resortmanagement.system.support.dto.response.CommunicationResponse;
 import com.resortmanagement.system.support.entity.Communication;
+import com.resortmanagement.system.support.enums.CommunicationStatus;
+import com.resortmanagement.system.support.mapper.CommunicationMapper;
 import com.resortmanagement.system.support.repository.CommunicationRepository;
 
 @Service
 public class CommunicationService {
 
-    private final CommunicationRepository repository;
+    private final CommunicationRepository repo;
+    private final GuestRepository guestRepo;
+    private final ReservationRepository reservationRepo;
 
-    public CommunicationService(CommunicationRepository repository) {
-        this.repository = repository;
+    public CommunicationService(
+            CommunicationRepository repo,
+            GuestRepository guestRepo,
+            ReservationRepository reservationRepo) {
+
+        this.repo = repo;
+        this.guestRepo = guestRepo;
+        this.reservationRepo = reservationRepo;
     }
 
-    public List<Communication> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    public CommunicationResponse create(CommunicationCreateRequest req) {
+
+        Communication entity = new Communication();
+
+        if(req.getGuestId() != null) {
+            entity.setGuest(
+                guestRepo.findById(req.getGuestId())
+                    .orElseThrow(() -> new RuntimeException("Guest not found"))
+            );
+        }
+
+        if(req.getReservationId() != null) {
+            entity.setReservation(
+                reservationRepo.findById(req.getReservationId())
+                    .orElseThrow(() -> new RuntimeException("Reservation not found"))
+            );
+        }
+
+        entity.setType(req.getType());
+        entity.setTo(req.getTo());
+        entity.setSubject(req.getSubject());
+        entity.setBodySnippet(req.getBodySnippet());
+        entity.setChannel(req.getChannel());
+        entity.setStatus(CommunicationStatus.SENT);
+        entity.setSentAt(LocalDateTime.now());
+
+        return CommunicationMapper.toResponse(repo.save(entity));
     }
 
-    public Optional<Communication> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
+    public List<CommunicationResponse> getAll() {
+
+        return repo.findByDeletedFalse()
+                .stream()
+                .map(CommunicationMapper::toResponse)
+                .toList();
     }
 
-    public Communication save(Communication entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
-    }
+    public void delete(UUID id) {
 
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+        Communication entity = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Communication not found"));
+
+        entity.setDeleted(true);
+        repo.save(entity);
     }
 }
+

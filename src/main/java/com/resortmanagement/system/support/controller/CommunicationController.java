@@ -14,56 +14,42 @@ package com.resortmanagement.system.support.controller;
 
 
 import java.util.List;
+import java.util.UUID;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.resortmanagement.system.support.entity.Communication;
+import com.resortmanagement.system.support.dto.request.CommunicationCreateRequest;
+import com.resortmanagement.system.support.dto.response.CommunicationResponse;
 import com.resortmanagement.system.support.service.CommunicationService;
 
 @RestController
-@RequestMapping("/api/support/communications")
+@RequestMapping("/api/communications")
 public class CommunicationController {
 
     private final CommunicationService service;
 
-    public CommunicationController(CommunicationService communicationService) {
-        this.service = communicationService;
-    }
-
-    @GetMapping
-    public ResponseEntity<List<Communication>> getAll() {
-        // TODO: add pagination and filtering params
-        return ResponseEntity.ok(this.service.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Communication> getById(@PathVariable Long id) {
-        return this.service.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public CommunicationController(CommunicationService service) {
+        this.service = service;
     }
 
     @PostMapping
-    public ResponseEntity<Communication> create(@RequestBody Communication entity) {
-        // TODO: add validation
-        return ResponseEntity.ok(this.service.save(entity));
+    public CommunicationResponse create(@RequestBody CommunicationCreateRequest req) {
+        return service.create(req);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Communication> update(@PathVariable Long id, @RequestBody Communication entity) {
-        // TODO: implement update logic
-        return ResponseEntity.ok(this.service.save(entity));
+    @GetMapping
+    public List<CommunicationResponse> getAll() {
+        return service.getAll();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        this.service.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public void delete(@PathVariable UUID id) {
+        service.delete(id);
     }
 }

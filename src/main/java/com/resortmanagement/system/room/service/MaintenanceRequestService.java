@@ -1,39 +1,46 @@
 package com.resortmanagement.system.room.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.resortmanagement.system.booking.repository.BookingGuestRepository;
+import com.resortmanagement.system.room.dto.request.MaintenanceRequestCreateRequest;
+import com.resortmanagement.system.room.dto.response.MaintenanceRequestResponse;
 import com.resortmanagement.system.room.entity.MaintenanceRequest;
+import com.resortmanagement.system.room.mapper.MaintenanceRequestMapper;
 import com.resortmanagement.system.room.repository.MaintenanceRequestRepository;
 
 @Service
 public class MaintenanceRequestService {
 
     private final MaintenanceRequestRepository repository;
+    private final BookingGuestRepository guestRepository;
 
-    public MaintenanceRequestService(MaintenanceRequestRepository repository) {
+    public MaintenanceRequestService(
+            MaintenanceRequestRepository repository,
+            BookingGuestRepository guestRepository) {
         this.repository = repository;
+        this.guestRepository = guestRepository;
     }
 
-    public List<MaintenanceRequest> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    public MaintenanceRequestResponse create(MaintenanceRequestCreateRequest request) {
+        MaintenanceRequest entity = MaintenanceRequestMapper.toEntity(request, guestRepository);
+        MaintenanceRequest saved = repository.save(entity);
+        return MaintenanceRequestMapper.toResponse(saved);
     }
 
-    public Optional<MaintenanceRequest> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
+    public List<MaintenanceRequestResponse> getAllOpen() {
+        return MaintenanceRequestMapper.toResponseList(repository.findByDeletedFalse());
     }
 
-    public MaintenanceRequest save(MaintenanceRequest entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
-    }
-
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+    public void close(UUID id) {
+        MaintenanceRequest entity = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("MaintenanceRequest not found"));
+        entity.setDeleted(true);
+        entity.setResolvedAt(LocalDateTime.now());
+        repository.save(entity);
     }
 }

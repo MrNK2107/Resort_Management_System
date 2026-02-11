@@ -1,39 +1,58 @@
 package com.resortmanagement.system.support.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.resortmanagement.system.booking.repository.ReservationRepository;
+import com.resortmanagement.system.common.guest.GuestRepository;
+import com.resortmanagement.system.support.dto.request.FeedbackReviewRequest;
 import com.resortmanagement.system.support.entity.FeedbackReview;
 import com.resortmanagement.system.support.repository.FeedbackReviewRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class FeedbackReviewService {
 
-    private final FeedbackReviewRepository repository;
+    private final FeedbackReviewRepository reviewRepo;
+    private final GuestRepository guestRepo;
+    private final ReservationRepository reservationRepo;
 
-    public FeedbackReviewService(FeedbackReviewRepository repository) {
-        this.repository = repository;
+    public FeedbackReview create(FeedbackReviewRequest request) {
+
+        FeedbackReview review = new FeedbackReview();
+
+        review.setGuest(
+                guestRepo.findById(request.getGuestId())
+                        .orElseThrow()
+        );
+
+        review.setReservation(
+                reservationRepo.findById(request.getReservationId())
+                        .orElseThrow()
+        );
+
+        review.setRating(request.getRating());
+        review.setComments(request.getComments());
+
+        return reviewRepo.save(review);
     }
 
-    public List<FeedbackReview> findAll() {
-        // TODO: add pagination and filtering
-        return repository.findAll();
+    public List<FeedbackReview> getAll() {
+        return reviewRepo.findAll();
     }
 
-    public Optional<FeedbackReview> findById(Long id) {
-        // TODO: add caching and error handling
-        return repository.findById(id);
-    }
+    public FeedbackReview respond(UUID id, UUID staffId) {
 
-    public FeedbackReview save(FeedbackReview entity) {
-        // TODO: add validation and business rules
-        return repository.save(entity);
-    }
+        FeedbackReview review = reviewRepo.findById(id).orElseThrow();
 
-    public void deleteById(Long id) {
-        // TODO: add soft delete if required
-        repository.deleteById(id);
+        review.setResponseBy(staffId);
+        review.setRespondedAt(LocalDateTime.now());
+
+        return reviewRepo.save(review);
     }
 }

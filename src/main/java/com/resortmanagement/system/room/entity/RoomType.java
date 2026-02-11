@@ -1,22 +1,43 @@
-/*
-TODO: RoomType.java
-Purpose:
- - Category for rooms.
-Fields:
- - id UUID
- - name String
- - baseRate BigDecimal
- - bedType String
- - areaSqFt int
- - maxOccupancy int
- - amenitiesSummary String
- - extends Auditable (optional)
-Notes:
- - Pricing is via RatePlan; RoomType.baseRate as fallback.
-File: room/entity/RoomType.java
-*/
 package com.resortmanagement.system.room.entity;
 
-public class RoomType {
-    // TODO: fields, constructors, getters, setters
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import com.resortmanagement.system.common.audit.AuditableSoftDeletable;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "room_types")
+@Getter
+@Setter
+public class RoomType extends AuditableSoftDeletable {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(nullable = false, unique = true)
+    private String name;
+
+    @Column(name = "base_rate")
+    private Double baseRate;
+
+    @Column(name = "bed_type")
+    private String bedType;
+
+    @Column(name = "area_sq_ft")
+    private Integer areaSqFt;
+
+    @Column(name = "amenities_summary")
+    private String amenitiesSummary;
+
+    @Column(name = "max_occupancy")
+    private Integer maxOccupancy;
+
+    @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY)
+    private List<Room> rooms = new ArrayList<>();
 }
