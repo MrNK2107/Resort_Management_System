@@ -22,7 +22,9 @@ package com.resortmanagement.system.support.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.resortmanagement.system.booking.entity.Reservation;
 import com.resortmanagement.system.common.audit.AuditableSoftDeletable;
+import com.resortmanagement.system.common.guest.Guest;
 import com.resortmanagement.system.support.enums.CommunicationStatus;
 import com.resortmanagement.system.support.enums.CommunicationType;
 
@@ -33,6 +35,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,11 +49,11 @@ public class Communication extends AuditableSoftDeletable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "CHAR(36)")
     private UUID id;
 
-    @Column(name = "guest_id")
-    private UUID guestId;
+    @ManyToOne
+    @JoinColumn(name = "guest_id")
+    private Guest guest;
 
     @Enumerated(EnumType.STRING)
     private CommunicationType type;
@@ -70,6 +74,7 @@ public class Communication extends AuditableSoftDeletable {
 
     private String channel;
 
-    @Column(name = "reservation_id")
-    private UUID reservationId;
+    @ManyToOne
+    @JoinColumn(name = "reservation_id")
+    private Reservation reservation;
 }

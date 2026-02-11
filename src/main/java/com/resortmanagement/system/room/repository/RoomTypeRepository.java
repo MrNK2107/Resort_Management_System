@@ -1,5 +1,6 @@
 package com.resortmanagement.system.room.repository;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,5 +10,5 @@ import com.resortmanagement.system.room.entity.RoomType;
 
 @Repository
 public interface RoomTypeRepository extends JpaRepository<RoomType, UUID> {
-    // TODO: add custom queries if needed
+    List<RoomType> findByDeletedFalse();
 }

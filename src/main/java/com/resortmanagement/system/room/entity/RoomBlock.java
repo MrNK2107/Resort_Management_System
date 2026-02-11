@@ -28,6 +28,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,8 +44,9 @@ public class RoomBlock extends AuditableSoftDeletable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "maintenance_request_id")
-    private UUID maintenanceRequestId;
+    @ManyToOne
+    @JoinColumn(name = "maintenance_request_id")
+    private MaintenanceRequest maintenanceRequest;
 
     @Column(name = "start_date", nullable = false)
     private LocalDateTime startDate;
@@ -56,6 +59,7 @@ public class RoomBlock extends AuditableSoftDeletable {
     @Enumerated(EnumType.STRING)
     private BlockStatus status;
 
-    @Column(name = "room_id", nullable = false)
-    private UUID roomId;
+    @ManyToOne
+    @JoinColumn(name = "room_id" , nullable = false)
+    private Room room;
 }

@@ -14,18 +14,18 @@ package com.resortmanagement.system.support.controller;
 
 
 import java.util.List;
+import java.util.UUID;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.resortmanagement.system.support.entity.Communication;
+import com.resortmanagement.system.support.dto.request.CommunicationCreateRequest;
+import com.resortmanagement.system.support.dto.response.CommunicationResponse;
 import com.resortmanagement.system.support.service.CommunicationService;
 
 @RestController
@@ -39,12 +39,17 @@ public class CommunicationController {
     }
 
     @PostMapping
-    public Communication create(@RequestBody Communication communication) {
-        return service.create(communication);
+    public CommunicationResponse create(@RequestBody CommunicationCreateRequest req) {
+        return service.create(req);
     }
 
     @GetMapping
-    public List<Communication> getAll() {
+    public List<CommunicationResponse> getAll() {
         return service.getAll();
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable UUID id) {
+        service.delete(id);
     }
 }

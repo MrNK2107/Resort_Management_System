@@ -1,44 +1,38 @@
-/*
-TODO: FeedbackReviewController.java
-Purpose:
- - CRUD for guest feedback and reviews.
-Endpoints:
- - POST /api/v1/reservations/{id}/reviews
- - GET /api/v1/reservations/{id}/reviews
-Responsibilities:
- - Use FeedbackReviewService to save feedback; link to reservation for follow-up.
-File: support/controller/FeedbackReviewController.java
-*/
 package com.resortmanagement.system.support.controller;
 
 import java.util.List;
+import java.util.UUID;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.resortmanagement.system.support.entity.FeedbackReview;
+import com.resortmanagement.system.support.dto.request.FeedbackReviewRequest;
+import com.resortmanagement.system.support.mapper.FeedbackReviewMapper;
 import com.resortmanagement.system.support.service.FeedbackReviewService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/feedback")
+@RequiredArgsConstructor
 public class FeedbackReviewController {
 
     private final FeedbackReviewService service;
 
-    public FeedbackReviewController(FeedbackReviewService service) {
-        this.service = service;
-    }
-
     @PostMapping
-    public FeedbackReview create(@RequestBody FeedbackReview review) {
-        return service.create(review);
+    public Object create(@RequestBody FeedbackReviewRequest request) {
+        return FeedbackReviewMapper.toResponse(service.create(request));
     }
 
     @GetMapping
-    public List<FeedbackReview> getAll() {
-        return service.getAll();
+    public List<?> getAll() {
+        return service.getAll()
+                .stream()
+                .map(FeedbackReviewMapper::toResponse)
+                .toList();
+    }
+
+    @PutMapping("/{id}/respond/{staffId}")
+    public Object respond(@PathVariable UUID id, @PathVariable UUID staffId) {
+        return FeedbackReviewMapper.toResponse(service.respond(id, staffId));
     }
 }

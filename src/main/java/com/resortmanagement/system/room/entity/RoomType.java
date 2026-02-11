@@ -1,32 +1,12 @@
-/*
-TODO: RoomType.java
-Purpose:
- - Category for rooms.
-Fields:
- - id UUID
- - name String
- - baseRate BigDecimal
- - bedType String
- - areaSqFt int
- - maxOccupancy int
- - amenitiesSummary String
- - extends Auditable (optional)
-Notes:
- - Pricing is via RatePlan; RoomType.baseRate as fallback.
-File: room/entity/RoomType.java
-*/
 package com.resortmanagement.system.room.entity;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-import com.resortmanagement.system.common.audit.Auditable;
+import com.resortmanagement.system.common.audit.AuditableSoftDeletable;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -34,12 +14,13 @@ import lombok.Setter;
 @Table(name = "room_types")
 @Getter
 @Setter
-public class RoomType extends Auditable {
+public class RoomType extends AuditableSoftDeletable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(name = "base_rate")
@@ -53,5 +34,10 @@ public class RoomType extends Auditable {
 
     @Column(name = "amenities_summary")
     private String amenitiesSummary;
-}
 
+    @Column(name = "max_occupancy")
+    private Integer maxOccupancy;
+
+    @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY)
+    private List<Room> rooms = new ArrayList<>();
+}

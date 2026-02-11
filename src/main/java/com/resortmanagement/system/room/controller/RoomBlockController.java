@@ -1,31 +1,17 @@
-/*
-TODO: RoomBlockController.java
-Purpose:
- - Manage room blocks (out of order or reserved for maintenance).
-Endpoints:
- - POST /api/v1/room-blocks
- - GET /api/v1/room-blocks?roomId=...
-Responsibilities:
- - Use RoomBlockService to prevent availability and possibly create RoomBlock from MaintenanceRequest.
-File: room/controller/RoomBlockController.java
-*/
 package com.resortmanagement.system.room.controller;
-
-import java.util.List;
 
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
-import com.resortmanagement.system.room.entity.RoomBlock;
+import com.resortmanagement.system.room.dto.request.RoomBlockCreateRequest;
+import com.resortmanagement.system.room.dto.request.RoomBlockUpdateRequest;
+import com.resortmanagement.system.room.dto.response.RoomBlockResponse;
 import com.resortmanagement.system.room.service.RoomBlockService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/room-blocks")
@@ -38,17 +24,30 @@ public class RoomBlockController {
     }
 
     @PostMapping
-    public RoomBlock block(@RequestBody RoomBlock block) {
-        return service.block(block);
+    @ResponseStatus(HttpStatus.CREATED)
+    public RoomBlockResponse create(@Valid @RequestBody RoomBlockCreateRequest dto) {
+        return service.create(dto);
     }
 
     @GetMapping
-    public List<RoomBlock> active() {
-        return service.getActiveBlocks();
+    public List<RoomBlockResponse> getAll() {
+        return service.getAll();
+    }
+
+    @GetMapping("/{id}")
+    public RoomBlockResponse getById(@PathVariable UUID id) {
+        return service.getById(id);
+    }
+
+    @PutMapping("/{id}")
+    public RoomBlockResponse update(@PathVariable UUID id,
+                                    @RequestBody RoomBlockUpdateRequest dto) {
+        return service.update(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    public void unblock(@PathVariable UUID id) {
-        service.unblock(id);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID id) {
+        service.delete(id);
     }
 }

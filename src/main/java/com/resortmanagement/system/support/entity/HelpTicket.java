@@ -21,7 +21,9 @@ package com.resortmanagement.system.support.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.resortmanagement.system.booking.entity.Reservation;
 import com.resortmanagement.system.common.audit.AuditableSoftDeletable;
+import com.resortmanagement.system.common.guest.Guest;
 import com.resortmanagement.system.support.enums.TicketPriority;
 import com.resortmanagement.system.support.enums.TicketStatus;
 
@@ -32,6 +34,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,14 +48,14 @@ public class HelpTicket extends AuditableSoftDeletable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "CHAR(36)")
     private UUID id;
 
-    @Column(name = "guest_id", nullable = false)
-    private UUID guestId;
+    @ManyToOne
+    @JoinColumn(name = "guest_id")
+    private Guest guest;
 
-    @Column(name = "ticket_id")
-    private String ticketId;
+   @Column(name = "ticket_number", unique = true)
+    private String ticketNumber;
 
     private String category;
 
@@ -63,11 +67,13 @@ public class HelpTicket extends AuditableSoftDeletable {
     @Enumerated(EnumType.STRING)
     private TicketStatus status;
 
-    @Column(name = "assigned_to")
+    @ManyToOne
+    @JoinColumn(name="assigned_to")
     private UUID assignedTo;
 
-    @Column(name = "reservation_id")
-    private UUID reservationId;
+    @ManyToOne
+    @JoinColumn(name = "reservation_id")
+    private Reservation reservation;
 
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;

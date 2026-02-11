@@ -1,5 +1,6 @@
 package com.resortmanagement.system.room.repository;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,5 +10,5 @@ import com.resortmanagement.system.room.entity.RoomAmenity;
 
 @Repository
 public interface RoomAmenityRepository extends JpaRepository<RoomAmenity, UUID> {
-    // TODO: add custom queries if needed
+    
 }
